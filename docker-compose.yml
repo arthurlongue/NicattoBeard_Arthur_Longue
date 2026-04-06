@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # To use a pre-built image later you can switch this to:
+    # image: ghcr.io/arthurlongue/nicattobeard-frontend:latest
+    ports:
+      - "3000:80"
+
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+      restart_policy:
+        condition: on-failure
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - internal
+
+  db-local:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: nicattobeard_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
