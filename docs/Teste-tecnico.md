@@ -1,15 +1,4 @@
 # **TESTE TÉCNICO FULL STACK**
-**Vila Velha - ES**
-**Prazo para entrega:** 7 dias
-
-## **NICATTO**
-
-### **Apresentação**
-A **Nicatto** é uma spin-off da **Clickativo**, uma boutique de software com 15 anos de história e expertise em tecnologia e inovação. Inicialmente criada para atender às necessidades específicas do setor automotivo, a plataforma expandiu sua atuação para oferecer eficiência operacional e resultados também a outros segmentos industriais. Com duas soluções complementares - **Nicatto Pós Vendas** e **Nicatto Ferramentaria**, a Nicatto entrega gestão integrada e automação de processos para concessionárias e indústrias em geral, promovendo mais produtividade, organização e redução de custos. Já confiada por concessionárias de grandes marcas como Volvo, Mercedes-Benz, Scania, Volkswagen, FIAT, entre outras, a Nicatto combina a experiência consolidada da Clickativo com tecnologias inovadoras, fornecendo soluções que transformam operações e impulsionam o crescimento nos setores automotivo e industrial.
-
-**Contatos:** Gabriel Nascimento de Oliveira (**CTO**), Tel: +55 (27) 3033-8424 / +55 (27) 99723-3386, E-mail: gabriel.nascimento@nicatto.com.br, Site: https://nicatto.com.br.
-
----
 
 ## **Escopo do teste**
 **Sistema de Agendamento para Barbearia - NicattoBeard**

@@ -1,73 +1,49 @@
-# React + TypeScript + Vite
+# NicattoBeard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack technical evaluation project for Nicatto, featuring a React frontend and a Node.js backend.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, Base UI, Framer Motion
+- **Backend:** Node.js, Express 5, TypeScript, PostgreSQL (pg driver)
+- **Deployment:** Docker, Docker Compose, EasyPanel (Traefik)
 
-## React Compiler
+## Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `/frontend`: React application built with Vite
+- `/backend`: Node.js Express server
+- `docker-compose.yml`: Local Docker environment with Postgres
+- `docker-compose.prod.yml`: Production Docker setup mapped for EasyPanel
 
-## Expanding the ESLint configuration
+## Running Locally
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Using Docker (Recommended)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+To spin up the entire application stack including a local PostgreSQL instance:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+docker-compose up --build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- Web interface will be available at `http://localhost:3000`
+- Local PostgreSQL runs on port `5432` (User: `admin`, Password: `adminpassword`, DB: `nicattobeard_db`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Manual Development
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**1. Install & run Frontend**
+```bash
+cd frontend
+pnpm install
+pnpm dev
 ```
+
+**2. Install & run Backend**
+```bash
+cd backend
+pnpm install
+pnpm dev
+```
+
+## Deployment
+
+This application includes configuration (`docker-compose.prod.yml`) optimized for deployment via EasyPanel. The production deployment pulls an external Docker image and routes traffic at the designated domain (`nicatto.artudev.com`) using Traefik labels.
