@@ -24,6 +24,7 @@ backend/dist/
 *.local
 frontend/.env
 backend/.env
+.private/
 
 # Editor directories and files
 .vscode/*
@@ -35,3 +36,4 @@ backend/.env
 *.njsproj
 *.sln
 *.sw?
+AGENTS.md
