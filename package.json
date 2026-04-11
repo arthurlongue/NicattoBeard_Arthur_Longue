@@ -3,9 +3,10 @@
   "private": true,
   "packageManager": "pnpm@10.23.0",
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm --dir backend dev\" \"pnpm --dir frontend dev\"",
+    "dev": "docker compose up db -d && concurrently -n backend,frontend -c blue,green \"pnpm --dir backend dev\" \"pnpm --dir frontend dev\"",
     "dev:backend": "pnpm --dir backend dev",
     "dev:frontend": "pnpm --dir frontend dev",
+    "dev:db": "docker compose up db -d",
     "docker:dev": "docker compose up --build --remove-orphans",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v",
