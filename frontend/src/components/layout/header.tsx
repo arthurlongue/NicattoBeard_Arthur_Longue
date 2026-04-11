@@ -10,7 +10,7 @@ export function Header() {
 			</Link>
 			<nav className="ml-auto flex gap-4 sm:gap-6">
 				<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/login">
-					Login
+					Entrar
 				</Link>
 				<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/signup">
 					Criar conta
