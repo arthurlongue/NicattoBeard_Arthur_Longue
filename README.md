@@ -2,22 +2,19 @@
 
 Technical evaluation for a barbershop scheduling platform.
 
-It includes:
-
-- a React 19 + Vite frontend
-- an Express 5 + TypeScript backend
-- a PostgreSQL schema with seed data
-- supporting product, API, and data-model documentation
-
 ## Tech Stack
 
-- Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Base UI, Motion
-- Backend: Node.js, Express 5, TypeScript, PostgreSQL
-- Tooling: pnpm, Biome, Docker, Docker Compose
+| Layer    | Technologies                                      |
+|----------|---------------------------------------------------|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, Base UI, Motion |
+| Backend  | Node.js, Express 5, TypeScript, PostgreSQL        |
+| Tooling  | pnpm, Biome, Docker, Docker Compose               |
+
+Documentation: [`docs/PRD.md`](docs/PRD.md) (product requirements), [`docs/API.md`](docs/API.md) (API contract), [`DER.md`](DER.md) (data model).
 
 ## Running Locally
 
-### Quick Start
+### Quick Start (Docker)
 
 ```bash
 docker compose up --build
@@ -25,22 +22,22 @@ docker compose up --build
 
 Prerequisite: Docker + Docker Compose.
 
-This starts the full stack and initializes the database automatically on first run.
+Seeds barbers, specialties, barber-specialty links, and sample appointments on first run.
 
-| Service    | URL                        |
-|------------|----------------------------|
-| Frontend   | http://localhost:5173       |
-| Backend API| http://localhost:3001       |
-| PostgreSQL | localhost:5432              |
+| Service     | URL                   |
+|-------------|-----------------------|
+| Frontend    | http://localhost:5173 |
+| Backend API | http://localhost:3001 |
+| PostgreSQL  | localhost:5432        |
 
-### Test Credentials
+#### Test Credentials
 
-| Role     | Email                       | Password      |
-|----------|-----------------------------|---------------|
-| Admin    | admin@nicattobeard.com      | Admin@123     |
-| Customer | joao.silva@example.com      | Cliente@123   |
+| Role     | Email                  | Password    |
+|----------|------------------------|-------------|
+| Admin    | admin@nicattobeard.com | Admin@123   |
+| Customer | joao.silva@example.com | Cliente@123 |
 
-### Useful Commands
+#### Useful Commands
 
 ```bash
 docker compose up --build   # Start all services
@@ -48,8 +45,6 @@ docker compose down         # Stop all services
 docker compose down -v      # Stop and reset database (full re-seed on next start)
 docker compose logs -f      # Follow logs from all services
 ```
-
-Seeded data includes barbers, specialties, barber-specialty links, and sample appointments.
 
 ### Manual Development (without Docker)
 
@@ -62,40 +57,23 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-2. Start PostgreSQL and apply the SQL files:
+2. Apply the SQL files:
 
 ```bash
 psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/001_schema.sql
 psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/002_seed.sql
 ```
 
-3. Install and run the backend:
+3. Install and run each workspace:
 
 ```bash
-cd backend
-pnpm install
-pnpm dev
+cd backend && pnpm install && pnpm dev
+cd frontend && pnpm install && pnpm dev
 ```
 
-4. Install and run the frontend:
-
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
-
-**Ports:** Frontend `5173`, Backend API `3001`, PostgreSQL `5432`
-
-## Documentation
-
-- Product requirements: `docs/PRD.md`
-- API contract: `docs/API.md`
-- Full ERD and modeling notes: `DER.md`
+Services are available at the same ports listed above.
 
 ## Database Model
-
-Quick visual reference:
 
 ```mermaid
 erDiagram
@@ -138,7 +116,7 @@ erDiagram
 
 - `users -> appointments`: a customer can create many appointments.
 - `barbers <-> specialties`: many-to-many relation through `barber_specialties`.
-- `appointments -> barber_specialties`: the composite FK `(barber_id, specialty_id)` ensures an appointment only uses a specialty actually offered by that barber.
+- `appointments -> barber_specialties`: composite FK `(barber_id, specialty_id)` ensures an appointment only uses a specialty offered by that barber.
 
 ## Deployment
 
