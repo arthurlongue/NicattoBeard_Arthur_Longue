@@ -9,12 +9,12 @@ import { SignupPage } from "./app/auth/signup"
 // Customer Pages
 import { CustomerDashboard } from "./app/customer/dashboard"
 import { NewAppointment } from "./app/customer/new-appointment"
+import RootLayout from "./app/layout"
+import NotFound from "./app/not-found"
 // Home Page
 import { HomePage } from "./app/page"
 import { AuthLayout } from "./components/layout/auth-layout"
 import { DashboardLayout } from "./components/layout/dashboard-layout"
-import RootLayout from "./app/layout"
-import NotFound from "./app/not-found"
 
 export const router = createBrowserRouter([
 	{
