@@ -11,7 +11,8 @@ export default function NotFound() {
 			<h1 className="mt-6 font-bold text-4xl tracking-tighter sm:text-5xl">404</h1>
 			<h2 className="mt-2 font-semibold text-2xl tracking-tight">Página não encontrada</h2>
 			<p className="mt-4 max-w-[500px] text-muted-foreground md:text-lg">
-				Desculpe, o barbeiro parece ter se perdido. A página que você está procurando não existe ou foi movida.
+				Desculpe, o barbeiro parece ter se perdido. A página que você está procurando não existe ou
+				foi movida.
 			</p>
 			<div className="mt-8">
 				<Button render={<Link to="/" />} size="lg">

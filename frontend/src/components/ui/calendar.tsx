@@ -1,4 +1,5 @@
 import * as React from "react"
+import type { Locale } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
   DayPicker,
