@@ -146,6 +146,74 @@ pnpm start      # Run compiled output
 
 These documents describe the intended product behavior and target API surface. They are ahead of the current code implementation.
 
+## Database Model
+
+The ER diagram below is embedded here for quick visual reference. The full modeling notes, constraints, and indexes remain documented in `DER.md`.
+
+```mermaid
+erDiagram
+    USERS {
+        bigint id PK
+        user_role role
+        varchar name
+        citext email UK
+        text password_hash
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    BARBERS {
+        bigint id PK
+        varchar name
+        smallint age
+        date hire_date
+        boolean active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    SPECIALTIES {
+        bigint id PK
+        citext name UK
+        text description
+        boolean active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    BARBER_SPECIALTIES {
+        bigint barber_id FK
+        bigint specialty_id FK
+        timestamptz created_at
+    }
+
+    APPOINTMENTS {
+        bigint id PK
+        bigint customer_id FK
+        bigint barber_id FK
+        bigint specialty_id FK
+        appointment_status status
+        timestamptz start_at
+        timestamptz end_at
+        timestamptz cancelled_at
+        text cancellation_reason
+        text notes
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    USERS ||--o{ APPOINTMENTS : books
+    BARBERS ||--o{ BARBER_SPECIALTIES : has
+    SPECIALTIES ||--o{ BARBER_SPECIALTIES : qualifies
+    BARBER_SPECIALTIES ||--o{ APPOINTMENTS : validates
+```
+
+Key relationships:
+
+- `users -> appointments`: a customer can create many appointments.
+- `barbers <-> specialties`: many-to-many relation through `barber_specialties`.
+- `appointments -> barber_specialties`: the composite FK `(barber_id, specialty_id)` ensures an appointment only uses a specialty actually offered by that barber.
+
 ## Deployment
 
 `docker-compose.prod.yml` is set up for an EasyPanel / Traefik deployment of the frontend image:
