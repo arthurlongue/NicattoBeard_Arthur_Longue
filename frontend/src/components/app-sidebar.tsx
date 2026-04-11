@@ -56,7 +56,9 @@ export function AppSidebar({ userRole }: { userRole: "admin" | "customer" }) {
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter className="p-4">
-				<span className="text-muted-foreground text-sm">Logged as {userRole}</span>
+				<span className="text-muted-foreground text-sm">
+					Logado como {userRole === "admin" ? "Administrador" : "Cliente"}
+				</span>
 			</SidebarFooter>
 		</Sidebar>
 	)

@@ -1,25 +1,11 @@
-import { CalendarDays, Scissors } from "lucide-react"
+import { CalendarDays } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 
 export function HomePage() {
 	return (
-		<div className="flex min-h-screen flex-col bg-muted/40">
-			<header className="flex h-16 items-center border-b bg-background px-4 lg:px-6">
-				<Link className="flex items-center justify-center gap-2" to="#">
-					<Scissors className="h-6 w-6" />
-					<span className="font-bold text-xl">NicattoBeard</span>
-				</Link>
-				<nav className="ml-auto flex gap-4 sm:gap-6">
-					<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/login">
-						Login
-					</Link>
-					<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/signup">
-						Criar conta
-					</Link>
-				</nav>
-			</header>
-			<main className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center md:px-6 md:py-24 lg:py-32">
+		<div className="flex flex-1 flex-col bg-muted/40">
+			<main className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center md:px-6 md:py-16 lg:py-24">
 				<div className="max-w-[800px] space-y-4">
 					<h1 className="font-bold text-3xl tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
 						A sua barbearia de confiança, agora digital.
@@ -43,7 +29,7 @@ export function HomePage() {
 					</div>
 				</div>
 			</main>
-			<footer className="flex w-full shrink-0 flex-col items-center gap-2 border-t bg-background px-4 py-6 sm:flex-row md:px-6">
+			<footer className="flex w-full shrink-0 flex-col items-center gap-2 border-t bg-background px-4 py-4 sm:flex-row md:px-6">
 				<p className="text-muted-foreground text-xs">
 					© 2026 NicattoBeard. Todos os direitos reservados.
 				</p>

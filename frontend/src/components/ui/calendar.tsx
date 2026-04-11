@@ -1,9 +1,10 @@
 import * as React from "react"
+import type { Locale } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import {
   DayPicker,
   getDefaultClassNames,
   type DayButton,
-  type Locale,
 } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -16,7 +17,7 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
-  locale,
+  locale = ptBR,
   formatters,
   components,
   ...props
