@@ -10,8 +10,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 		<div className={cn("flex flex-col gap-6", className)} {...props}>
 			<Card>
 				<CardHeader>
-					<CardTitle>Login to your account</CardTitle>
-					<CardDescription>Enter your email below to login to your account</CardDescription>
+					<CardTitle>Acesse sua conta</CardTitle>
+					<CardDescription>Insira seu e-mail abaixo para acessar sua conta</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form>
@@ -22,23 +22,23 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 							</Field>
 							<Field>
 								<div className="flex items-center">
-									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<FieldLabel htmlFor="password">Senha</FieldLabel>
 									<button
 										type="button"
 										className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
 									>
-										Forgot your password?
+										Esqueceu sua senha?
 									</button>
 								</div>
 								<Input id="password" type="password" required />
 							</Field>
 							<Field>
-								<Button type="submit">Login</Button>
+								<Button type="submit">Entrar</Button>
 								<Button variant="outline" type="button">
-									Login with Google
+									Entrar com Google
 								</Button>
 								<FieldDescription className="text-center">
-									Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+									Não tem uma conta? <Link to="/signup">Cadastre-se</Link>
 								</FieldDescription>
 							</Field>
 						</FieldGroup>
