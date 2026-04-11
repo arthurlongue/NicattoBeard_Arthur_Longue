@@ -25,6 +25,7 @@ backend/dist/
 frontend/.env
 backend/.env
 .private/
+.agents/
 
 # Editor directories and files
 .vscode/*
