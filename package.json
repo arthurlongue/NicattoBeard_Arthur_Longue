@@ -1,0 +1,17 @@
+{
+  "name": "nicattobeard-dev",
+  "private": true,
+  "packageManager": "pnpm@10.23.0",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm --dir backend dev\" \"pnpm --dir frontend dev\"",
+    "dev:backend": "pnpm --dir backend dev",
+    "dev:frontend": "pnpm --dir frontend dev",
+    "docker:dev": "docker compose up --build --remove-orphans",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v",
+    "build": "pnpm --dir backend build && pnpm --dir frontend build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
