@@ -2,6 +2,12 @@
 
 Este documento define o contrato esperado para a primeira versao da API. A base path sugerida e `/api`.
 
+## Bootstrap local
+
+- `pnpm dev`: sobe frontend + backend juntos pela raiz.
+- `pnpm docker:dev`: sobe stack Docker pela raiz.
+- O frontend usa proxy `/api` para o backend local.
+
 ## Formato de erros
 
 Todas as respostas de erro seguem o formato abaixo:
@@ -22,6 +28,18 @@ Todas as respostas de erro seguem o formato abaixo:
 - `details`: objeto opcional com campos contextuais do erro.
 
 ## Autenticacao
+
+### `GET /api/health`
+
+Endpoint simples para validar se o backend subiu no ambiente local.
+
+Response `200`:
+
+```json
+{
+  "status": "ok"
+}
+```
 
 ### `POST /api/auth/register`
 

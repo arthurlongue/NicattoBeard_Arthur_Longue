@@ -1,15 +1,18 @@
 FROM node:20-alpine
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json frontend/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --filter ./frontend... --frozen-lockfile
 
-COPY . .
+COPY frontend ./frontend
 
 EXPOSE 5173
 
-CMD ["pnpm", "dev", "--host"]
+WORKDIR /app/frontend
+
+CMD ["pnpm", "dev", "--host", "0.0.0.0"]
