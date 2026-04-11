@@ -1,6 +1,6 @@
 # NicattoBeard
 
-Technical evaluation for a barbershop scheduling platform.
+Avaliacao tecnica de uma plataforma de agendamento para barbearia.
 
 ## Tech Stack
 
@@ -10,19 +10,19 @@ Technical evaluation for a barbershop scheduling platform.
 | Backend  | Node.js, Express 5, TypeScript, PostgreSQL        |
 | Tooling  | pnpm, Biome, Docker, Docker Compose               |
 
-Documentation: [`docs/PRD.md`](docs/PRD.md) (product requirements), [`docs/API.md`](docs/API.md) (API contract), [`DER.md`](DER.md) (data model).
+Documentacao: [`docs/PRD.md`](docs/PRD.md) (requisitos do produto), [`docs/API.md`](docs/API.md) (contrato da API), [`DER.md`](DER.md) (modelo de dados).
 
-## Running Locally
+## Executando Localmente
 
 ### Quick Start (Docker)
 
 ```bash
-docker compose up --build
+pnpm docker:dev
 ```
 
-Prerequisite: Docker + Docker Compose.
+Pre-requisito: Docker + Docker Compose.
 
-Seeds barbers, specialties, barber-specialty links, and sample appointments on first run.
+Na primeira subida, carrega barbeiros, especialidades, relacoes barbeiro-especialidade e agendamentos de exemplo.
 
 | Service     | URL                   |
 |-------------|-----------------------|
@@ -30,50 +30,88 @@ Seeds barbers, specialties, barber-specialty links, and sample appointments on f
 | Backend API | http://localhost:3001 |
 | PostgreSQL  | localhost:5432        |
 
-#### Test Credentials
+#### Credenciais de teste
 
 | Role     | Email                  | Password    |
 |----------|------------------------|-------------|
 | Admin    | admin@nicattobeard.com | Admin@123   |
 | Customer | joao.silva@example.com | Cliente@123 |
 
-#### Useful Commands
+#### Comandos uteis
 
 ```bash
-docker compose up --build   # Start all services
-docker compose down         # Stop all services
-docker compose down -v      # Stop and reset database (full re-seed on next start)
-docker compose logs -f      # Follow logs from all services
+pnpm docker:dev     # Start all services
+pnpm docker:down    # Stop all services
+pnpm docker:reset   # Stop + reset DB volume
+docker compose logs -f
 ```
 
-### Manual Development (without Docker)
+### Desenvolvimento manual (sem Docker)
 
-**Prerequisites:** Node.js 20+, pnpm, PostgreSQL 15+
+**Pre-requisitos:** Node.js 20+, pnpm, PostgreSQL 15+, `psql`
 
-1. Copy the env examples:
+1. Copie os exemplos de ambiente:
 
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-2. Apply the SQL files:
+2. Crie o banco local e aplique os SQLs:
 
 ```bash
+createdb -U admin nicattobeard_db
 psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/001_schema.sql
 psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/002_seed.sql
 ```
 
-3. Install and run each workspace:
+3. Instale dependencias do monorepo leve:
 
 ```bash
-cd backend && pnpm install && pnpm dev
-cd frontend && pnpm install && pnpm dev
+pnpm install
 ```
 
-Services are available at the same ports listed above.
+4. Suba front + back juntos:
 
-## Database Model
+```bash
+pnpm dev
+```
+
+Ou rode separado:
+
+```bash
+pnpm dev:backend
+pnpm dev:frontend
+```
+
+Servicos padrao:
+
+| Servico     | URL                           |
+|-------------|-------------------------------|
+| Frontend    | http://localhost:5173         |
+| Backend API | http://localhost:3001         |
+| Healthcheck | http://localhost:3001/api/health |
+
+Notas de dev sem Docker:
+
+- `frontend` usa proxy `/api` para `http://localhost:3001`.
+- Se `5173` estiver ocupada, o Vite sobe na proxima porta livre sozinho.
+- `backend` aceita requisicoes de `localhost` e `127.0.0.1` em qualquer porta de dev, entao o CORS nao quebra quando o frontend muda.
+- Se `3001` estiver ocupada, troque `PORT` no `backend/.env` e `VITE_API_PROXY_TARGET` no `frontend/.env` para a mesma URL.
+
+Notas de Docker:
+
+- Por padrao, Docker publica `5173`, `3001` e `5432`.
+- Se alguma estiver ocupada, sobrescreva `HOST_FRONTEND_PORT`, `HOST_BACKEND_PORT` e/ou `HOST_POSTGRES_PORT`.
+- Se mudar a porta publicada do frontend no Docker, tambem passe `CORS_ORIGIN=http://localhost:<porta>`.
+
+Exemplo:
+
+```bash
+HOST_FRONTEND_PORT=5174 CORS_ORIGIN=http://localhost:5174 pnpm docker:dev
+```
+
+## Modelo do Banco
 
 ```mermaid
 erDiagram
@@ -118,6 +156,6 @@ erDiagram
 - `barbers <-> specialties`: many-to-many relation through `barber_specialties`.
 - `appointments -> barber_specialties`: composite FK `(barber_id, specialty_id)` ensures an appointment only uses a specialty offered by that barber.
 
-## Deployment
+## Deploy
 
-`docker-compose.prod.yml` contains the frontend deployment setup for EasyPanel / Traefik. PostgreSQL is expected to be provided externally in production.
+`docker-compose.prod.yml` contem a configuracao de deploy do frontend para EasyPanel / Traefik. Em producao, PostgreSQL deve ser provido externamente.
