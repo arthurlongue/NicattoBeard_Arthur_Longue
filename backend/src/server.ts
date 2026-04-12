@@ -1,29 +1,29 @@
 import "dotenv/config"
 import cors from "cors"
 import express from "express"
+import { z } from "zod"
 
-const parsePort = (value: string | undefined, fallbackPort: number, label: string) => {
-	if (!value) {
-		return fallbackPort
-	}
+const envSchema = z.object({
+	PORT: z.coerce.number().int().min(1).max(65535).default(3001),
+	NODE_ENV: z.enum(["development", "production", "test"]).optional(),
+	CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+})
 
-	const parsedPort = Number(value)
+const envResult = envSchema.safeParse(process.env)
 
-	if (
-		Number.isInteger(parsedPort) &&
-		parsedPort >= 1 &&
-		parsedPort <= 65535
-	) {
-		return parsedPort
-	}
+if (!envResult.success) {
+	const details = envResult.error.issues
+		.map((issue) => `${issue.path.join(".") || "env"}: ${issue.message}`)
+		.join("; ")
 
-	throw new Error(`Invalid ${label}: "${value}"`)
+	throw new Error(`Invalid environment configuration. ${details}`)
 }
 
 const app = express()
-const port = parsePort(process.env.PORT, 3001, "PORT")
-const isDev = process.env.NODE_ENV !== "production"
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173"
+const env = envResult.data
+const port = env.PORT
+const isDev = env.NODE_ENV !== "production"
+const corsOrigin = env.CORS_ORIGIN
 const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
 
 app.use(

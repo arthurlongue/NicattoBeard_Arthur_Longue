@@ -12,6 +12,13 @@ Avaliacao tecnica de uma plataforma de agendamento para barbearia.
 
 Documentacao: [`docs/PRD.md`](docs/PRD.md) (requisitos do produto), [`docs/API.md`](docs/API.md) (contrato da API), [`DER.md`](DER.md) (modelo de dados).
 
+## Diretriz de validacao
+
+- TypeScript tipa codigo, mas nao valida payload recebido em runtime.
+- Backend usa `Zod` como camada recomendada para validar entrada na borda da aplicacao.
+- Validar `req.body`, `req.params`, `req.query` e variaveis de ambiente antes da regra de negocio.
+- `422` fica reservado para entrada invalida. Regras de negocio continuam na camada de servico e no banco, como e-mail duplicado, conflito de horario e janela de cancelamento.
+
 ## Executando Localmente
 
 ### Quick Start (Docker)
