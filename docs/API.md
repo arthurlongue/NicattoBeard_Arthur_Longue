@@ -27,6 +27,29 @@ Todas as respostas de erro seguem o formato abaixo:
 - `message`: descricao legivel para exibicao.
 - `details`: objeto opcional com campos contextuais do erro.
 
+## Convencao de validacao de entrada
+
+- TypeScript sozinho nao protege entrada HTTP em runtime.
+- Ao implementar endpoints, validar `body`, `params` e `query` antes de entrar na regra de negocio.
+- `Zod` e abordagem recomendada para esses contratos de entrada no backend.
+- Erro de validacao deve responder `422` com `error=VALIDATION_ERROR`.
+- Conflitos e regras de dominio continuam separados da validacao estrutural: `409` para unicidade ou conflito de agenda, `403` para permissao, `401` para autenticacao.
+
+Exemplo sugerido para `422`:
+
+```json
+{
+  "error": "VALIDATION_ERROR",
+  "message": "Payload invalido",
+  "details": {
+    "fieldErrors": {
+      "email": ["E-mail invalido"],
+      "password": ["Senha deve ter pelo menos 8 caracteres"]
+    }
+  }
+}
+```
+
 ## Autenticacao
 
 ### `GET /api/health`
@@ -103,6 +126,7 @@ Response `200`:
 Erros:
 
 - `401` para credenciais invalidas.
+- `422` para payload invalido.
 
 ## Especialidades
 
@@ -150,6 +174,7 @@ Response `201`:
 Erros:
 
 - `403` para usuario sem permissao.
+- `422` para payload invalido.
 - `409` para especialidade duplicada.
 
 ### `PATCH /api/specialties/:specialtyId`
@@ -180,6 +205,7 @@ Erros:
 
 - `403` para usuario sem permissao.
 - `404` se a especialidade nao existir.
+- `422` para payload invalido.
 - `409` para nome duplicado.
 
 ## Barbeiros
