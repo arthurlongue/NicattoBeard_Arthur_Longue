@@ -60,7 +60,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
 	console.error("[INTERNAL_ERROR]", err)
 
-	const isDev = process.env.NODE_ENV !== "production"
+	const isDev = process.env.NODE_ENV === "development"
 
 	res.status(500).json({
 		error: "INTERNAL_ERROR",

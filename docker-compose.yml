@@ -26,7 +26,8 @@ services:
       - "${HOST_BACKEND_PORT:-3001}:3001"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-adminpassword}@db:5432/${POSTGRES_DB:-nicattobeard_db}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-for-local-docker-123}
+      NODE_ENV: development
       PORT: 3001
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     healthcheck:

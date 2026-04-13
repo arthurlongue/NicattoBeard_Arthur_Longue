@@ -3,7 +3,13 @@ import { z } from "zod"
 import { authenticate, authorize } from "../lib/auth.js"
 import { pool, query } from "../lib/db.js"
 import { ApiError } from "../lib/errors.js"
-import { generateAvailableSlots, startOfDaySP, endOfDaySP } from "../lib/slots.js"
+import {
+	MAX_BOOKING_DAYS_AHEAD,
+	endOfDaySP,
+	generateAvailableSlots,
+	isWithinBookingWindowSP,
+	startOfDaySP,
+} from "../lib/slots.js"
 import { validate } from "../lib/validate.js"
 
 // --- Schemas ---
@@ -40,7 +46,13 @@ const listQuerySchema = z.object({
 })
 
 const availabilityQuerySchema = z.object({
-	date: z.string().date("Data inválida (YYYY-MM-DD)"),
+	date: z
+		.string()
+		.date("Data inválida (YYYY-MM-DD)")
+		.refine(
+			(date) => isWithinBookingWindowSP(date),
+			`Data deve estar entre hoje e ${MAX_BOOKING_DAYS_AHEAD} dias à frente`,
+		),
 	specialtyId: z.coerce.number().int().positive("specialtyId obrigatório"),
 })
 

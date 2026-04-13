@@ -1,5 +1,6 @@
 import { Router } from "express"
 import { z } from "zod"
+import type { AuthRole } from "../lib/auth.js"
 import { comparePassword, hashPassword, signToken } from "../lib/auth.js"
 import { query } from "../lib/db.js"
 import { ApiError } from "../lib/errors.js"
@@ -29,12 +30,12 @@ authRouter.post("/register", validate(registerSchema, "body"), async (req, res, 
 
 		const passwordHash = await hashPassword(password)
 
-		const { rows } = await query<{
-			id: number
-			role: string
-			name: string
-			email: string
-		}>(
+			const { rows } = await query<{
+				id: number
+				role: AuthRole
+				name: string
+				email: string
+			}>(
 			"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, role, name, email",
 			[name, email, passwordHash],
 		)
@@ -54,12 +55,12 @@ authRouter.post("/login", validate(loginSchema, "body"), async (req, res, next) 
 	try {
 		const { email, password } = req.body
 
-		const { rows } = await query<{
-			id: number
-			role: string
-			name: string
-			email: string
-			password_hash: string
+			const { rows } = await query<{
+				id: number
+				role: AuthRole
+				name: string
+				email: string
+				password_hash: string
 		}>("SELECT id, role, name, email, password_hash FROM users WHERE email = $1", [email])
 
 		if (rows.length === 0) {

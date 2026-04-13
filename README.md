@@ -23,13 +23,15 @@ Documentacao: [`docs/PRD.md`](docs/PRD.md) (requisitos do produto), [`docs/API.m
 
 ### Quick Start (Docker)
 
-Opcional: copie o exemplo da raiz se quiser sobrescrever portas, credenciais do Postgres ou `JWT_SECRET` do ambiente Docker local.
+Opcional: copie o exemplo da raiz se quiser sobrescrever portas, credenciais do Postgres, `NODE_ENV` ou `JWT_SECRET` do ambiente Docker local.
 
 ```bash
 cp .env.example .env
 ```
 
 Se nao copiar, os defaults do `docker-compose.yml` ja sobem o ambiente.
+
+Observacao: `JWT_SECRET` agora exige no minimo 32 caracteres.
 
 ```bash
 pnpm docker:dev
@@ -78,6 +80,8 @@ docker compose logs -f
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
+
+No backend, defina `NODE_ENV` explicitamente (`development`, `test` ou `production`) e use `JWT_SECRET` com no minimo 32 caracteres.
 
 2. Crie o banco local e aplique os SQLs:
 

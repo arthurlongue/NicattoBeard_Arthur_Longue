@@ -2,10 +2,18 @@ const BUSINESS_START = 8
 const BUSINESS_END = 18
 const SLOT_MINUTES = 30
 const TZ = "America/Sao_Paulo"
+export const MAX_BOOKING_DAYS_AHEAD = 90
 
 export interface Slot {
 	startAt: string
 	endAt: string
+}
+
+/**
+ * Format a Date to YYYY-MM-DD in São Paulo timezone.
+ */
+export function dateStringSP(date: Date): string {
+	return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(date)
 }
 
 /**
@@ -99,8 +107,30 @@ export function endOfDaySP(dateStr: string): Date {
 /**
  * Get today's date string in SP timezone (YYYY-MM-DD).
  */
-function todaySP(): string {
-	return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date())
+export function todaySP(): string {
+	return dateStringSP(new Date())
+}
+
+/**
+ * Get the last date allowed for booking/availability queries in SP timezone.
+ */
+export function maxBookingDateSP(daysAhead = MAX_BOOKING_DAYS_AHEAD): string {
+	const [year, month, day] = todaySP().split("-").map(Number)
+	const base = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+	base.setUTCDate(base.getUTCDate() + daysAhead)
+	return dateStringSP(base)
+}
+
+/**
+ * Check whether a YYYY-MM-DD date falls within the supported booking window.
+ */
+export function isWithinBookingWindowSP(
+	dateStr: string,
+	daysAhead = MAX_BOOKING_DAYS_AHEAD,
+): boolean {
+	const today = todaySP()
+	const maxDate = maxBookingDateSP(daysAhead)
+	return dateStr >= today && dateStr <= maxDate
 }
 
 /**

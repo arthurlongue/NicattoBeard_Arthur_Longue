@@ -363,7 +363,7 @@ Erros:
 
 ### `GET /api/barbers/:barberId/availability?date=2026-04-08&specialtyId=1`
 
-Lista slots disponiveis do barbeiro em uma data. O parametro `specialtyId` e obrigatorio e o sistema valida que o barbeiro atende essa especialidade.
+Lista slots disponiveis do barbeiro em uma data. O parametro `specialtyId` e obrigatorio e o sistema valida que o barbeiro atende essa especialidade. A data deve estar entre hoje e 90 dias a frente.
 
 Response `200`:
 
@@ -388,7 +388,7 @@ Response `200`:
 Erros:
 
 - `404` se o barbeiro nao existir.
-- `422` se a data for invalida ou se o `specialtyId` estiver ausente.
+- `422` se a data for invalida, estiver fora da janela de 90 dias ou se o `specialtyId` estiver ausente.
 - `422` se o barbeiro nao atender a especialidade informada.
 
 ## Agendamentos do cliente
@@ -436,6 +436,7 @@ Regras:
 
 - `endAt` e derivado automaticamente como `startAt + 30 minutos`.
 - O horario deve estar entre 08:00 e 18:00.
+- O agendamento deve estar entre hoje e 90 dias a frente.
 - O barbeiro deve atender a especialidade informada.
 - O slot deve estar livre.
 
@@ -456,7 +457,7 @@ Response `201`:
 Erros:
 
 - `409` para conflito de horario.
-- `422` para regra de negocio violada (horario fora da faixa, barbeiro sem a especialidade).
+- `422` para regra de negocio violada (horario fora da faixa, data fora da janela ou barbeiro sem a especialidade).
 
 ### `PATCH /api/appointments/:appointmentId/cancel`
 

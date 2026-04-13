@@ -16,10 +16,10 @@ import { errorHandler } from "./lib/errors.js"
 
 const envSchema = z.object({
 	PORT: z.coerce.number().int().min(1).max(65535).default(3001),
-	NODE_ENV: z.enum(["development", "production", "test"]).optional(),
+	NODE_ENV: z.enum(["development", "production", "test"]).default("production"),
 	CORS_ORIGIN: z.string().min(1).default("http://localhost:5173"),
 	DATABASE_URL: z.string().url(),
-	JWT_SECRET: z.string().min(8),
+	JWT_SECRET: z.string().min(32, "JWT_SECRET deve ter no mínimo 32 caracteres"),
 })
 
 const envResult = envSchema.safeParse(process.env)

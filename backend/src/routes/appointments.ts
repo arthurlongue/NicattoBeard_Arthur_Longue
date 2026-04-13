@@ -3,7 +3,14 @@ import { z } from "zod"
 import { authenticate } from "../lib/auth.js"
 import { query } from "../lib/db.js"
 import { ApiError } from "../lib/errors.js"
-import { toSaoPauloISO, isBusinessHour, isValidSlotMinute } from "../lib/slots.js"
+import {
+	MAX_BOOKING_DAYS_AHEAD,
+	dateStringSP,
+	isBusinessHour,
+	isValidSlotMinute,
+	isWithinBookingWindowSP,
+	toSaoPauloISO,
+} from "../lib/slots.js"
 import { validate } from "../lib/validate.js"
 
 // --- Schemas ---
@@ -52,10 +59,20 @@ appointmentsRouter.post(
 
 			const startAt = new Date(startAtStr)
 			const endAt = new Date(startAt.getTime() + 30 * 60 * 1000)
+			const bookingDate = dateStringSP(startAt)
 
 			// Prevent past bookings
 			if (startAt <= new Date()) {
 				next(ApiError.validation("Não é possível agendar no passado"))
+				return
+			}
+
+			if (!isWithinBookingWindowSP(bookingDate)) {
+				next(
+					ApiError.validation(
+						`Agendamento deve estar entre hoje e ${MAX_BOOKING_DAYS_AHEAD} dias à frente`,
+					),
+				)
 				return
 			}
 
@@ -217,26 +234,31 @@ appointmentsRouter.patch(
 				return
 			}
 
-			const updated = await query<{
-				id: number
-				status: string
-				cancelled_at: Date
-				cancellation_reason: string | null
-			}>(
-				`UPDATE appointments
-				 SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = $2
-				 WHERE id = $1
-				 RETURNING id, status, cancelled_at, cancellation_reason`,
-				[appointmentId, reason ?? null],
-			)
+				const updated = await query<{
+					id: number
+					status: string
+					cancelled_at: Date
+					cancellation_reason: string | null
+				}>(
+					`UPDATE appointments
+					 SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = $3
+					 WHERE id = $1 AND customer_id = $2 AND status = 'scheduled'
+					 RETURNING id, status, cancelled_at, cancellation_reason`,
+					[appointmentId, customerId, reason ?? null],
+				)
 
-			const result = updated.rows[0]
-			res.json({
-				id: result.id,
-				status: result.status,
-				cancelledAt: toSaoPauloISO(result.cancelled_at),
-				cancellationReason: result.cancellation_reason,
-			})
+				if (updated.rows.length === 0) {
+					next(ApiError.conflict("Agendamento não pode mais ser cancelado"))
+					return
+				}
+
+				const result = updated.rows[0]
+				res.json({
+					id: result.id,
+					status: result.status,
+					cancelledAt: toSaoPauloISO(result.cancelled_at),
+					cancellationReason: result.cancellation_reason,
+				})
 		} catch (err) {
 			next(err)
 		}
