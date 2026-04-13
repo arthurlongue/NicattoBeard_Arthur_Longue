@@ -9,6 +9,53 @@ export interface Slot {
 }
 
 /**
+ * Get the UTC offset in minutes for a given date in São Paulo.
+ * Positive = ahead of UTC, negative = behind.
+ */
+function getSPOffsetMinutes(date: Date): number {
+	// Format time in both UTC and SP, compare the difference
+	const utcParts = new Intl.DateTimeFormat("en-US", {
+		timeZone: "UTC",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}).formatToParts(date)
+
+	const spParts = new Intl.DateTimeFormat("en-US", {
+		timeZone: TZ,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}).formatToParts(date)
+
+	const get = (parts: Intl.DateTimeFormatPart[], type: string) =>
+		Number(parts.find((p) => p.type === type)?.value ?? 0)
+
+	// Build minutes-since-epoch-ish for comparison (just need relative diff)
+	const utcTotal =
+		get(utcParts, "year") * 525960 +
+		get(utcParts, "month") * 43800 +
+		get(utcParts, "day") * 1440 +
+		get(utcParts, "hour") * 60 +
+		get(utcParts, "minute")
+
+	const spTotal =
+		get(spParts, "year") * 525960 +
+		get(spParts, "month") * 43800 +
+		get(spParts, "day") * 1440 +
+		get(spParts, "hour") * 60 +
+		get(spParts, "minute")
+
+	return spTotal - utcTotal
+}
+
+/**
  * Format a Date to ISO 8601 with the São Paulo offset.
  */
 export function toSaoPauloISO(date: Date): string {
@@ -28,11 +75,7 @@ export function toSaoPauloISO(date: Date): string {
 
 	const iso = `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`
 
-	// Calculate offset
-	const utcMs = date.getTime()
-	const localStr = date.toLocaleString("en-US", { timeZone: TZ })
-	const localMs = new Date(localStr).getTime()
-	const offsetMin = Math.round((localMs - utcMs) / 60000)
+	const offsetMin = getSPOffsetMinutes(date)
 	const sign = offsetMin >= 0 ? "+" : "-"
 	const absMin = Math.abs(offsetMin)
 	const hh = String(Math.floor(absMin / 60)).padStart(2, "0")
@@ -45,23 +88,13 @@ export function toSaoPauloISO(date: Date): string {
  * Get start of day in São Paulo as UTC Date.
  */
 export function startOfDaySP(dateStr: string): Date {
-	const [year, month, day] = dateStr.split("-").map(Number)
-	// Create a date string at 00:00 in SP timezone and convert to UTC
-	const spMidnight = new Date(`${dateStr}T00:00:00`)
-	// Get the offset for that date in SP
-	const formatter = new Intl.DateTimeFormat("en-US", {
-		timeZone: TZ,
-		timeZoneName: "shortOffset",
-	})
-	const formatted = formatter.format(new Date(`${dateStr}T12:00:00Z`))
-	const match = formatted.match(/GMT([+-]\d+(?::\d+)?)/)
-	const offsetStr = match?.[1] ?? "-3"
-	const [offsetH, offsetM = "0"] = offsetStr.split(":").map(Number)
-	const offsetMs = (offsetH * 60 + Math.sign(offsetH) * Number(offsetM)) * 60000
+	// Determine SP offset for noon on that date (avoids DST edge at midnight)
+	const noonUTC = new Date(`${dateStr}T12:00:00Z`)
+	const offsetMin = getSPOffsetMinutes(noonUTC)
 
-	// midnight SP in UTC
-	const utc = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0))
-	return new Date(utc.getTime() - offsetMs)
+	const [year, month, day] = dateStr.split("-").map(Number)
+	// midnight SP = midnight UTC minus offset
+	return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0) - offsetMin * 60000)
 }
 
 /**
@@ -88,7 +121,6 @@ export function generateAvailableSlots(dateStr: string, bookedStartTimes: Date[]
 	const now = new Date()
 	const isToday = dateStr === todaySP()
 
-	// Booked times as ISO strings for quick comparison
 	const bookedSet = new Set(bookedStartTimes.map((d) => d.getTime()))
 
 	const slots: Slot[] = []
