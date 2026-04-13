@@ -15,6 +15,10 @@ export class ApiError extends Error {
 		return new ApiError(409, "CONFLICT", message, details)
 	}
 
+	static badRequest(message = "Requisição inválida", details?: unknown) {
+		return new ApiError(400, "BAD_REQUEST", message, details)
+	}
+
 	static notFound(message = "Recurso não encontrado") {
 		return new ApiError(404, "NOT_FOUND", message)
 	}
@@ -38,6 +42,18 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 			error: err.error,
 			message: err.message,
 			...(err.details ? { details: err.details } : {}),
+		})
+		return
+	}
+
+	if (
+		err instanceof Error &&
+		"type" in err &&
+		(err as { type?: string }).type === "entity.parse.failed"
+	) {
+		res.status(400).json({
+			error: "BAD_REQUEST",
+			message: "JSON inválido no corpo da requisição",
 		})
 		return
 	}

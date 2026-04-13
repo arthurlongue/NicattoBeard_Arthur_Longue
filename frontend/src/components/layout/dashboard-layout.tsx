@@ -1,8 +1,12 @@
 import { Outlet } from "react-router-dom"
+import { useAuth } from "@/lib/auth-context"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "../app-sidebar"
 
-export function DashboardLayout({ userRole }: { userRole: "admin" | "customer" }) {
+export function DashboardLayout() {
+	const { user } = useAuth()
+	const userRole = user?.role ?? "customer"
+
 	return (
 		<SidebarProvider>
 			<div className="flex min-h-screen w-full">

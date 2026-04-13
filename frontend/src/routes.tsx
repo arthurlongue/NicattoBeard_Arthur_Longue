@@ -15,6 +15,7 @@ import NotFound from "./app/not-found"
 import { HomePage } from "./app/page"
 import { AuthLayout } from "./components/layout/auth-layout"
 import { DashboardLayout } from "./components/layout/dashboard-layout"
+import { ProtectedRoute } from "./components/layout/protected-route"
 
 export const router = createBrowserRouter([
 	{
@@ -38,10 +39,12 @@ export const router = createBrowserRouter([
 				],
 			},
 			{
-				// TODO: Guard de autenticacao pendente. Durante a montagem inicial do frontend,
-				// a area do cliente permanece aberta ate a camada de auth/context ser integrada.
 				path: "/dashboard",
-				element: <DashboardLayout userRole="customer" />,
+				element: (
+					<ProtectedRoute requiredRole="customer">
+						<DashboardLayout />
+					</ProtectedRoute>
+				),
 				children: [
 					{
 						index: true,
@@ -54,10 +57,12 @@ export const router = createBrowserRouter([
 				],
 			},
 			{
-				// TODO: Guard de autorizacao pendente. Esta rota ainda nao valida JWT/role
-				// porque a navegacao base do frontend esta sendo implementada antes da auth.
 				path: "/admin",
-				element: <DashboardLayout userRole="admin" />,
+				element: (
+					<ProtectedRoute requiredRole="admin">
+						<DashboardLayout />
+					</ProtectedRoute>
+				),
 				children: [
 					{
 						index: true,
