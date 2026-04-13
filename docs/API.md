@@ -26,6 +26,8 @@ Todas as respostas de erro seguem o formato abaixo:
 - `error`: codigo curto e constante do erro (ex: `CONFLICT`, `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`).
 - `message`: descricao legivel para exibicao.
 - `details`: objeto opcional com campos contextuais do erro.
+- JSON malformado no corpo deve responder `400` com `error=BAD_REQUEST`.
+- Rotas `/api/*` inexistentes devem responder `404` no mesmo formato JSON.
 
 ## Convencao de validacao de entrada
 

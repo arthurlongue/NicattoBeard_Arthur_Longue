@@ -1,4 +1,4 @@
-import { Calendar, CheckCircle2, Clock, Users } from "lucide-react"
+import { Calendar, CheckCircle2, Clock, Loader2, Users } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,59 +11,20 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import type { Appointment } from "@/lib/types"
-
-const MOCK_APPOINTMENTS: Appointment[] = [
-	{
-		id: "1",
-		customerId: "c1",
-		customerName: "Lucas Ferreira",
-		barberId: "b1",
-		barberName: "Arthur Longue",
-		specialtyId: "s1",
-		specialtyName: "Degradê",
-		date: new Date().toISOString(), // Hoje
-		status: "scheduled",
-	},
-	{
-		id: "2",
-		customerId: "c2",
-		customerName: "Gabriel Santos",
-		barberId: "b2",
-		barberName: "Diego Fernandes",
-		specialtyId: "s2",
-		specialtyName: "Barba Terapia",
-		date: new Date().toISOString(), // Hoje
-		status: "completed",
-	},
-	{
-		id: "3",
-		customerId: "c3",
-		customerName: "Rafael Oliveira",
-		barberId: "b1",
-		barberName: "Arthur Longue",
-		specialtyId: "s3",
-		specialtyName: "Corte Social",
-		date: new Date(Date.now() + 86400000).toISOString(), // Amanhã
-		status: "scheduled",
-	},
-]
+import { useAdminAppointments } from "@/lib/queries"
 
 export function AdminDashboard() {
-	const [view, setView] = useState<"today" | "future">("today")
+	const [scope, setScope] = useState<"today" | "future">("today")
+	const { data: appointments = [], isLoading } = useAdminAppointments(scope)
 
-	const today = new Date().toISOString().split("T")[0]
-	const filteredAppointments = MOCK_APPOINTMENTS.filter((app) => {
-		const appDate = app.date.split("T")[0]
-		return view === "today" ? appDate === today : appDate > today
-	})
-
+	// Since we don't have a separate stats endpoint in the API contract, 
+	// we calculate stats based on the data we have for the current scope.
+	// Note: For real stats, we might need a dedicated endpoint or fetch both scopes.
+	// For now, let's just use what we have in view.
 	const stats = {
-		totalToday: MOCK_APPOINTMENTS.filter((a) => a.date.split("T")[0] === today).length,
-		completedToday: MOCK_APPOINTMENTS.filter(
-			(a) => a.date.split("T")[0] === today && a.status === "completed",
-		).length,
-		future: MOCK_APPOINTMENTS.filter((a) => a.date.split("T")[0] > today).length,
+		total: appointments.length,
+		completed: appointments.filter((a) => a.status === "scheduled" && new Date(a.endAt) < new Date()).length, // Heuristic for v1
+		future: scope === "future" ? appointments.length : 0,
 	}
 
 	return (
@@ -78,32 +39,32 @@ export function AdminDashboard() {
 			<div className="grid gap-4 md:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="font-medium text-sm">Total de Hoje</CardTitle>
+						<CardTitle className="font-medium text-sm">Total no Período</CardTitle>
 						<Users className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="font-bold text-2xl">{stats.totalToday}</div>
-						<p className="text-muted-foreground text-xs">atendimentos</p>
+						<div className="font-bold text-2xl">{stats.total}</div>
+						<p className="text-muted-foreground text-xs">agendamentos</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="font-medium text-sm">Concluídos</CardTitle>
+						<CardTitle className="font-medium text-sm">Escopo Atual</CardTitle>
 						<CheckCircle2 className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="font-bold text-2xl text-green-600">{stats.completedToday}</div>
-						<p className="text-muted-foreground text-xs">atendimentos</p>
+						<div className="font-bold text-2xl text-primary capitalize">{scope === "today" ? "Hoje" : "Futuro"}</div>
+						<p className="text-muted-foreground text-xs">visão selecionada</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="font-medium text-sm">Pendentes/Futuros</CardTitle>
+						<CardTitle className="font-medium text-sm">Status</CardTitle>
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="font-bold text-2xl">{stats.future}</div>
-						<p className="text-muted-foreground text-xs">agendamentos salvos</p>
+						<div className="font-bold text-2xl">{appointments.filter(a => a.status === 'scheduled').length}</div>
+						<p className="text-muted-foreground text-xs">ativos</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -111,16 +72,16 @@ export function AdminDashboard() {
 			<div className="space-y-4">
 				<div className="flex border-b">
 					<Button
-						variant={view === "today" ? "default" : "ghost"}
-						className={`h-10 rounded-none border-b-2 px-4 ${view === "today" ? "border-primary" : "border-transparent"}`}
-						onClick={() => setView("today")}
+						variant={scope === "today" ? "default" : "ghost"}
+						className={`h-10 rounded-none border-b-2 px-4 ${scope === "today" ? "border-primary" : "border-transparent"}`}
+						onClick={() => setScope("today")}
 					>
 						Hoje
 					</Button>
 					<Button
-						variant={view === "future" ? "default" : "ghost"}
-						className={`h-10 rounded-none border-b-2 px-4 ${view === "future" ? "border-primary" : "border-transparent"}`}
-						onClick={() => setView("future")}
+						variant={scope === "future" ? "default" : "ghost"}
+						className={`h-10 rounded-none border-b-2 px-4 ${scope === "future" ? "border-primary" : "border-transparent"}`}
+						onClick={() => setScope("future")}
 					>
 						Próximos Dias
 					</Button>
@@ -138,47 +99,49 @@ export function AdminDashboard() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{filteredAppointments.length === 0 ? (
+							{isLoading ? (
+								<TableRow>
+									<TableCell colSpan={5} className="h-24 text-center">
+										<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+									</TableCell>
+								</TableRow>
+							) : appointments.length === 0 ? (
 								<TableRow>
 									<TableCell colSpan={5} className="h-24 text-center">
 										Nenhum agendamento encontrado para este período.
 									</TableCell>
 								</TableRow>
 							) : (
-								filteredAppointments.map((app) => (
+								appointments.map((app) => (
 									<TableRow key={app.id}>
 										<TableCell>
 											<div className="flex items-center gap-2">
 												<Clock className="h-4 w-4 text-muted-foreground" />
-												{new Date(app.date).toLocaleTimeString("pt-BR", {
+												{new Date(app.startAt).toLocaleTimeString("pt-BR", {
 													hour: "2-digit",
 													minute: "2-digit",
 												})}
-												{view === "future" && (
+												{scope === "future" && (
 													<span className="ml-1 text-muted-foreground text-xs">
-														({new Date(app.date).toLocaleDateString("pt-BR")})
+														({new Date(app.startAt).toLocaleDateString("pt-BR")})
 													</span>
 												)}
 											</div>
 										</TableCell>
-										<TableCell className="font-medium">{app.customerName}</TableCell>
-										<TableCell>{app.barberName}</TableCell>
-										<TableCell>{app.specialtyName}</TableCell>
+										<TableCell className="font-medium">{app.customer.name}</TableCell>
+										<TableCell>{app.barber.name}</TableCell>
+										<TableCell>{app.specialty.name}</TableCell>
 										<TableCell>
 											<Badge
 												variant={
 													app.status === "scheduled"
 														? "default"
-														: app.status === "completed"
-															? "secondary"
-															: "destructive"
+														: "destructive"
 												}
 											>
 												{app.status === "scheduled"
 													? "Agendado"
-													: app.status === "completed"
-														? "Concluído"
-														: "Cancelado"}
+													: "Cancelado"}
 											</Badge>
 										</TableCell>
 									</TableRow>

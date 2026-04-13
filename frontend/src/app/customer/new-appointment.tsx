@@ -1,6 +1,6 @@
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, Clock } from "lucide-react"
+import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, Clock, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -8,53 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ApiError } from "@/lib/api"
+import { useAvailability, useBarbers, useCreateAppointment, useSpecialties } from "@/lib/queries"
 import type { Barber, Specialty } from "@/lib/types"
-
-const MOCK_SPECIALTIES: Specialty[] = [
-	{ id: "s1", name: "Corte Social", active: true },
-	{ id: "s2", name: "Barba Terapia", active: true },
-	{ id: "s3", name: "Degradê", active: true },
-]
-
-const MOCK_BARBERS: Barber[] = [
-	{
-		id: "b1",
-		name: "Arthur Longue",
-		age: 28,
-		hireDate: "2024-01-15",
-		active: true,
-		specialties: [MOCK_SPECIALTIES[0], MOCK_SPECIALTIES[2]],
-	},
-	{
-		id: "b2",
-		name: "Diego Fernandes",
-		age: 32,
-		hireDate: "2023-11-20",
-		active: true,
-		specialties: [MOCK_SPECIALTIES[1]],
-	},
-]
-
-const TIME_SLOTS = [
-	"08:00",
-	"08:30",
-	"09:00",
-	"09:30",
-	"10:00",
-	"10:30",
-	"11:00",
-	"11:30",
-	"13:00",
-	"13:30",
-	"14:00",
-	"14:30",
-	"15:00",
-	"15:30",
-	"16:00",
-	"16:30",
-	"17:00",
-	"17:30",
-]
 
 export function NewAppointment() {
 	const navigate = useNavigate()
@@ -63,17 +19,50 @@ export function NewAppointment() {
 		specialty: null as Specialty | null,
 		barber: null as Barber | null,
 		date: undefined as Date | undefined,
-		time: "" as string,
+		startAt: "" as string, // full ISO string from API slot
+		timeLabel: "" as string, // display label like "08:00"
 	})
 
-	const handleConfirm = () => {
-		toast.success("Agendamento realizado com sucesso!")
-		navigate("/dashboard")
-	}
+	// Step 1: fetch specialties
+	const { data: specialties = [], isLoading: loadingSpecs } = useSpecialties()
 
-	const filteredBarbers = MOCK_BARBERS.filter((barber) =>
-		selection.specialty ? barber.specialties.some((s) => s.id === selection.specialty?.id) : true,
+	// Step 2: fetch barbers filtered by specialty
+	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers(
+		selection.specialty?.id,
 	)
+
+	// Step 3: fetch availability for selected barber + date + specialty
+	const dateStr = selection.date ? format(selection.date, "yyyy-MM-dd") : undefined
+	const { data: availability, isLoading: loadingSlots } = useAvailability(
+		selection.barber?.id,
+		dateStr,
+		selection.specialty?.id,
+	)
+
+	const createAppointment = useCreateAppointment()
+
+	const handleConfirm = () => {
+		if (!selection.specialty || !selection.barber || !selection.startAt) return
+
+		createAppointment.mutate(
+			{
+				barberId: selection.barber.id,
+				specialtyId: selection.specialty.id,
+				startAt: selection.startAt,
+			},
+			{
+				onSuccess: () => {
+					toast.success("Agendamento realizado com sucesso!")
+					navigate("/dashboard")
+				},
+				onError: (err) => {
+					const message =
+						err instanceof ApiError ? err.body.message : "Erro ao criar agendamento."
+					toast.error(message)
+				},
+			},
+		)
+	}
 
 	return (
 		<div className="mx-auto max-w-4xl space-y-8">
@@ -109,60 +98,84 @@ export function NewAppointment() {
 			</div>
 
 			{step === 1 && (
-				<div className="grid gap-4 md:grid-cols-3">
-					{MOCK_SPECIALTIES.map((spec) => (
-						<Card
-							key={spec.id}
-							className={`cursor-pointer transition-all hover:border-primary ${selection.specialty?.id === spec.id ? "border-primary bg-primary/5" : ""}`}
-							onClick={() => {
-								setSelection({ ...selection, specialty: spec, barber: null })
-								setStep(2)
-							}}
-						>
-							<CardHeader>
-								<CardTitle className="text-lg">{spec.name}</CardTitle>
-								<CardDescription>Atendimento especializado</CardDescription>
-							</CardHeader>
-							<CardContent className="flex justify-end">
-								{selection.specialty?.id === spec.id && <Check className="h-5 w-5 text-primary" />}
-							</CardContent>
-						</Card>
-					))}
-				</div>
+				<>
+					{loadingSpecs ? (
+						<div className="flex justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+						</div>
+					) : (
+						<div className="grid gap-4 md:grid-cols-3">
+							{specialties.map((spec) => (
+								<Card
+									key={spec.id}
+									className={`cursor-pointer transition-all hover:border-primary ${selection.specialty?.id === spec.id ? "border-primary bg-primary/5" : ""}`}
+									onClick={() => {
+										setSelection({ ...selection, specialty: spec, barber: null })
+										setStep(2)
+									}}
+								>
+									<CardHeader>
+										<CardTitle className="text-lg">{spec.name}</CardTitle>
+										<CardDescription>
+											{spec.description || "Atendimento especializado"}
+										</CardDescription>
+									</CardHeader>
+									<CardContent className="flex justify-end">
+										{selection.specialty?.id === spec.id && (
+											<Check className="h-5 w-5 text-primary" />
+										)}
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					)}
+				</>
 			)}
 
 			{step === 2 && (
-				<div className="grid gap-4 md:grid-cols-2">
-					{filteredBarbers.map((barber) => (
-						<Card
-							key={barber.id}
-							className={`cursor-pointer transition-all hover:border-primary ${selection.barber?.id === barber.id ? "border-primary bg-primary/5" : ""}`}
-							onClick={() => {
-								setSelection({ ...selection, barber })
-								setStep(3)
-							}}
-						>
-							<CardHeader className="flex flex-row items-center gap-4">
-								<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted font-bold text-lg">
-									{barber.name.charAt(0)}
-								</div>
-								<div>
-									<CardTitle className="text-lg">{barber.name}</CardTitle>
-									<CardDescription>{barber.age} anos</CardDescription>
-								</div>
-							</CardHeader>
-							<CardContent>
-								<div className="flex flex-wrap gap-1">
-									{barber.specialties.map((s) => (
-										<Badge key={s.id} variant="secondary" className="text-[10px]">
-											{s.name}
-										</Badge>
-									))}
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
+				<>
+					{loadingBarbers ? (
+						<div className="flex justify-center py-8">
+							<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+						</div>
+					) : barbers.length === 0 ? (
+						<p className="py-8 text-center text-muted-foreground">
+							Nenhum barbeiro disponível para esta especialidade.
+						</p>
+					) : (
+						<div className="grid gap-4 md:grid-cols-2">
+							{barbers.map((barber) => (
+								<Card
+									key={barber.id}
+									className={`cursor-pointer transition-all hover:border-primary ${selection.barber?.id === barber.id ? "border-primary bg-primary/5" : ""}`}
+									onClick={() => {
+										setSelection({ ...selection, barber })
+										setStep(3)
+									}}
+								>
+									<CardHeader className="flex flex-row items-center gap-4">
+										<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted font-bold text-lg">
+											{barber.name.charAt(0)}
+										</div>
+										<div>
+											<CardTitle className="text-lg">{barber.name}</CardTitle>
+											<CardDescription>{barber.age} anos</CardDescription>
+										</div>
+									</CardHeader>
+									<CardContent>
+										<div className="flex flex-wrap gap-1">
+											{barber.specialties.map((s) => (
+												<Badge key={s.id} variant="secondary" className="text-[10px]">
+													{s.name}
+												</Badge>
+											))}
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					)}
+				</>
 			)}
 
 			{step === 3 && (
@@ -178,7 +191,9 @@ export function NewAppointment() {
 							<Calendar
 								mode="single"
 								selected={selection.date}
-								onSelect={(d) => setSelection({ ...selection, date: d })}
+								onSelect={(d) =>
+									setSelection({ ...selection, date: d, startAt: "", timeLabel: "" })
+								}
 								className="rounded-md border"
 								locale={ptBR}
 								disabled={(date) => date < new Date() || date.getDay() === 0}
@@ -199,25 +214,50 @@ export function NewAppointment() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-3 gap-2">
-								{TIME_SLOTS.map((slot) => (
-									<Button
-										key={slot}
-										variant={selection.time === slot ? "default" : "outline"}
-										className="text-xs"
-										onClick={() => setSelection({ ...selection, time: slot })}
-										disabled={!selection.date}
-									>
-										{slot}
-									</Button>
-								))}
-							</div>
+							{!selection.date ? (
+								<p className="py-4 text-center text-muted-foreground text-sm">
+									Selecione uma data para ver os horários.
+								</p>
+							) : loadingSlots ? (
+								<div className="flex justify-center py-8">
+									<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+								</div>
+							) : !availability || availability.slots.length === 0 ? (
+								<p className="py-4 text-center text-muted-foreground text-sm">
+									Nenhum horário disponível nesta data.
+								</p>
+							) : (
+								<div className="grid grid-cols-3 gap-2">
+									{availability.slots.map((slot) => {
+										const label = new Date(slot.startAt).toLocaleTimeString("pt-BR", {
+											hour: "2-digit",
+											minute: "2-digit",
+										})
+										return (
+											<Button
+												key={slot.startAt}
+												variant={selection.startAt === slot.startAt ? "default" : "outline"}
+												className="text-xs"
+												onClick={() =>
+													setSelection({
+														...selection,
+														startAt: slot.startAt,
+														timeLabel: label,
+													})
+												}
+											>
+												{label}
+											</Button>
+										)
+									})}
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</div>
 			)}
 
-			{step === 3 && selection.time && (
+			{step === 3 && selection.startAt && (
 				<div className="fixed right-0 bottom-0 left-0 border-t bg-background p-4 md:relative md:border-t-0 md:bg-transparent md:p-0">
 					<Card className="mx-auto max-w-lg bg-primary text-primary-foreground md:max-w-none">
 						<CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
@@ -227,17 +267,28 @@ export function NewAppointment() {
 									{selection.specialty?.name} com {selection.barber?.name}
 								</p>
 								<p className="text-xs opacity-90">
-									{selection.date && format(selection.date, "dd/MM/yyyy")} às {selection.time}
+									{selection.date && format(selection.date, "dd/MM/yyyy")} às{" "}
+									{selection.timeLabel}
 								</p>
 							</div>
 							<Button
 								variant="secondary"
 								size="lg"
 								onClick={handleConfirm}
+								disabled={createAppointment.isPending}
 								className="w-full md:w-auto"
 							>
-								Confirmar Agendamento
-								<ArrowRight className="ml-2 h-4 w-4" />
+								{createAppointment.isPending ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Confirmando...
+									</>
+								) : (
+									<>
+										Confirmar Agendamento
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</>
+								)}
 							</Button>
 						</CardContent>
 					</Card>

@@ -1,5 +1,6 @@
-import { Plus, Trash2 } from "lucide-react"
+import { Loader2, Plus, Power, PowerOff } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,34 +22,51 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import type { Specialty } from "@/lib/types"
-
-const MOCK_SPECIALTIES: Specialty[] = [
-	{ id: "1", name: "Corte Social", active: true },
-	{ id: "2", name: "Barba Terapia", active: true },
-	{ id: "3", name: "Degradê", active: true },
-	{ id: "4", name: "Coloração", active: true },
-]
+import { ApiError } from "@/lib/auth-context"
+import { useCreateSpecialty, useSpecialties, useUpdateSpecialty } from "@/lib/queries"
 
 export function AdminSpecialties() {
-	const [specialties, setSpecialties] = useState<Specialty[]>(MOCK_SPECIALTIES)
+	const { data: specialties = [], isLoading } = useSpecialties()
+	const createMutation = useCreateSpecialty()
+	const updateMutation = useUpdateSpecialty()
+
 	const [isAddOpen, setIsAddOpen] = useState(false)
 	const [newName, setNewName] = useState("")
+	const [newDescription, setNewDescription] = useState("")
 
-	const handleAdd = () => {
+	const handleAdd = async () => {
 		if (!newName.trim()) return
-		const newSpec: Specialty = {
-			id: Math.random().toString(36).substr(2, 9),
-			name: newName,
-			active: true,
-		}
-		setSpecialties([...specialties, newSpec])
-		setNewName("")
-		setIsAddOpen(false)
+
+		createMutation.mutate(
+			{ name: newName, description: newDescription },
+			{
+				onSuccess: () => {
+					toast.success("Especialidade criada com sucesso!")
+					setNewName("")
+					setNewDescription("")
+					setIsAddOpen(false)
+				},
+				onError: (err) => {
+					const message = err instanceof ApiError ? err.body.message : "Erro ao criar especialidade."
+					toast.error(message)
+				},
+			},
+		)
 	}
 
-	const handleDelete = (id: string) => {
-		setSpecialties(specialties.filter((s) => s.id !== id))
+	const handleToggleActive = (id: number, currentActive: boolean) => {
+		updateMutation.mutate(
+			{ id, active: !currentActive },
+			{
+				onSuccess: () => {
+					toast.success(`Especialidade ${!currentActive ? "ativada" : "desativada"} com sucesso.`)
+				},
+				onError: (err) => {
+					const message = err instanceof ApiError ? err.body.message : "Erro ao atualizar especialidade."
+					toast.error(message)
+				},
+			},
+		)
 	}
 
 	return (
@@ -80,14 +98,27 @@ export function AdminSpecialties() {
 									value={newName}
 									onChange={(e) => setNewName(e.target.value)}
 									placeholder="Ex: Corte Moderno"
+									disabled={createMutation.isPending}
+								/>
+							</div>
+							<div className="grid gap-2">
+								<Label htmlFor="description">Descrição (opcional)</Label>
+								<Input
+									id="description"
+									value={newDescription}
+									onChange={(e) => setNewDescription(e.target.value)}
+									placeholder="Ex: Corte com acabamento manual"
+									disabled={createMutation.isPending}
 								/>
 							</div>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setIsAddOpen(false)}>
+							<Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={createMutation.isPending}>
 								Cancelar
 							</Button>
-							<Button onClick={handleAdd}>Salvar</Button>
+							<Button onClick={handleAdd} disabled={createMutation.isPending}>
+								{createMutation.isPending ? "Salvando..." : "Salvar"}
+							</Button>
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
@@ -98,14 +129,21 @@ export function AdminSpecialties() {
 					<TableHeader>
 						<TableRow>
 							<TableHead>Nome</TableHead>
+							<TableHead>Descrição</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead className="text-right">Ações</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{specialties.length === 0 ? (
+						{isLoading ? (
 							<TableRow>
-								<TableCell colSpan={3} className="h-24 text-center">
+								<TableCell colSpan={4} className="h-24 text-center">
+									<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+								</TableCell>
+							</TableRow>
+						) : specialties.length === 0 ? (
+							<TableRow>
+								<TableCell colSpan={4} className="h-24 text-center">
 									Nenhuma especialidade cadastrada.
 								</TableCell>
 							</TableRow>
@@ -113,19 +151,27 @@ export function AdminSpecialties() {
 							specialties.map((specialty) => (
 								<TableRow key={specialty.id}>
 									<TableCell className="font-medium">{specialty.name}</TableCell>
+									<TableCell className="text-muted-foreground text-sm">
+										{specialty.description || "-"}
+									</TableCell>
 									<TableCell>
-										<Badge variant={specialty.active ? "default" : "secondary"}>
-											{specialty.active ? "Ativo" : "Inativo"}
+										<Badge variant={specialty.active !== false ? "default" : "secondary"}>
+											{specialty.active !== false ? "Ativo" : "Inativo"}
 										</Badge>
 									</TableCell>
 									<TableCell className="text-right">
 										<Button
 											variant="ghost"
 											size="icon"
-											onClick={() => handleDelete(specialty.id)}
-											className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+											onClick={() => handleToggleActive(specialty.id, specialty.active !== false)}
+											disabled={updateMutation.isPending}
+											title={specialty.active !== false ? "Desativar" : "Ativar"}
 										>
-											<Trash2 className="h-4 w-4" />
+											{specialty.active !== false ? (
+												<PowerOff className="h-4 w-4 text-destructive" />
+											) : (
+												<Power className="h-4 w-4 text-primary" />
+											)}
 										</Button>
 									</TableCell>
 								</TableRow>
