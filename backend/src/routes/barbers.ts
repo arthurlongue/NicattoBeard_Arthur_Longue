@@ -155,11 +155,11 @@ barbersRouter.post(
 			// Deduplicate specialtyIds before verifying
 			const uniqueSpecIds = [...new Set(specialtyIds)]
 			const specCheck = await client.query(
-				"SELECT id FROM specialties WHERE id = ANY($1)",
+				"SELECT id FROM specialties WHERE id = ANY($1) AND active = true",
 				[uniqueSpecIds],
 			)
 			if (specCheck.rows.length !== uniqueSpecIds.length) {
-				next(ApiError.validation("Uma ou mais especialidades não existem", { specialtyIds: ["ID inválido"] }))
+				next(ApiError.validation("Uma ou mais especialidades não existem ou estão inativas", { specialtyIds: ["ID inválido ou inativo"] }))
 				return
 			}
 
@@ -262,11 +262,11 @@ barbersRouter.put(
 			// Deduplicate specialtyIds before verifying
 			const uniqueSpecIds = [...new Set(specialtyIds)]
 			const specCheck = await client.query(
-				"SELECT id FROM specialties WHERE id = ANY($1)",
+				"SELECT id FROM specialties WHERE id = ANY($1) AND active = true",
 				[uniqueSpecIds],
 			)
 			if (specCheck.rows.length !== uniqueSpecIds.length) {
-				next(ApiError.validation("Uma ou mais especialidades não existem", { specialtyIds: ["ID inválido"] }))
+				next(ApiError.validation("Uma ou mais especialidades não existem ou estão inativas", { specialtyIds: ["ID inválido ou inativo"] }))
 				return
 			}
 
