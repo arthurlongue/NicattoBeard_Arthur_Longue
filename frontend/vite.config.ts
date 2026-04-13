@@ -10,11 +10,7 @@ const parsePort = (value: string | undefined, fallbackPort: number, label: strin
 
 	const parsedPort = Number(value)
 
-	if (
-		Number.isInteger(parsedPort) &&
-		parsedPort >= 1 &&
-		parsedPort <= 65535
-	) {
+	if (Number.isInteger(parsedPort) && parsedPort >= 1 && parsedPort <= 65535) {
 		return parsedPort
 	}
 
@@ -24,11 +20,7 @@ const parsePort = (value: string | undefined, fallbackPort: number, label: strin
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "")
-	const frontendPort = parsePort(
-		env.FRONTEND_PORT,
-		5173,
-		"FRONTEND_PORT"
-	)
+	const frontendPort = parsePort(env.FRONTEND_PORT, 5173, "FRONTEND_PORT")
 	const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://localhost:3001"
 
 	return {
