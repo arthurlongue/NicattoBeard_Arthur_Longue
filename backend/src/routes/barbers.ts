@@ -152,12 +152,13 @@ barbersRouter.post(
 				return
 			}
 
-			// Verify all specialtyIds exist
+			// Deduplicate specialtyIds before verifying
+			const uniqueSpecIds = [...new Set(specialtyIds)]
 			const specCheck = await client.query(
 				"SELECT id FROM specialties WHERE id = ANY($1)",
-				[specialtyIds],
+				[uniqueSpecIds],
 			)
-			if (specCheck.rows.length !== specialtyIds.length) {
+			if (specCheck.rows.length !== uniqueSpecIds.length) {
 				next(ApiError.validation("Uma ou mais especialidades não existem", { specialtyIds: ["ID inválido"] }))
 				return
 			}
@@ -171,11 +172,11 @@ barbersRouter.post(
 			const barberId = barberResult.rows[0].id
 
 			// Bulk insert specialties
-			if (specialtyIds.length > 0) {
-				const values = specialtyIds.map((_, i) => `($1, $${i + 2})`).join(", ")
+			if (uniqueSpecIds.length > 0) {
+				const values = uniqueSpecIds.map((_, i) => `($1, $${i + 2})`).join(", ")
 				await client.query(
 					`INSERT INTO barber_specialties (barber_id, specialty_id) VALUES ${values}`,
-					[barberId, ...specialtyIds],
+					[barberId, ...uniqueSpecIds],
 				)
 			}
 
@@ -258,12 +259,13 @@ barbersRouter.put(
 				return
 			}
 
-			// Verify all specialtyIds exist
+			// Deduplicate specialtyIds before verifying
+			const uniqueSpecIds = [...new Set(specialtyIds)]
 			const specCheck = await client.query(
 				"SELECT id FROM specialties WHERE id = ANY($1)",
-				[specialtyIds],
+				[uniqueSpecIds],
 			)
-			if (specCheck.rows.length !== specialtyIds.length) {
+			if (specCheck.rows.length !== uniqueSpecIds.length) {
 				next(ApiError.validation("Uma ou mais especialidades não existem", { specialtyIds: ["ID inválido"] }))
 				return
 			}
@@ -272,10 +274,10 @@ barbersRouter.put(
 
 			await client.query("DELETE FROM barber_specialties WHERE barber_id = $1", [barberId])
 
-			const values = specialtyIds.map((_, i) => `($1, $${i + 2})`).join(", ")
+			const values = uniqueSpecIds.map((_, i) => `($1, $${i + 2})`).join(", ")
 			await client.query(
 				`INSERT INTO barber_specialties (barber_id, specialty_id) VALUES ${values}`,
-				[barberId, ...specialtyIds],
+				[barberId, ...uniqueSpecIds],
 			)
 
 			await client.query("COMMIT")

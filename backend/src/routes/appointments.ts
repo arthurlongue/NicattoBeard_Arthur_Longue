@@ -11,7 +11,13 @@ import { validate } from "../lib/validate.js"
 const createSchema = z.object({
 	barberId: z.number().int().positive("barberId obrigatório"),
 	specialtyId: z.number().int().positive("specialtyId obrigatório"),
-	startAt: z.string().datetime({ offset: true, message: "Data/hora inválida (ISO 8601 com offset)" }),
+	startAt: z
+		.string()
+		.datetime({ offset: true, message: "Data/hora inválida (ISO 8601 com offset)" })
+		.refine((val) => {
+			const d = new Date(val)
+			return d.getSeconds() === 0 && d.getMilliseconds() === 0
+		}, "Segundos e milissegundos devem ser zero"),
 })
 
 const cancelSchema = z.object({
@@ -60,6 +66,12 @@ appointmentsRouter.post(
 			const startAt = new Date(startAtStr)
 			const endAt = new Date(startAt.getTime() + 30 * 60 * 1000)
 
+			// Prevent past bookings
+			if (startAt <= new Date()) {
+				next(ApiError.validation("Não é possível agendar no passado"))
+				return
+			}
+
 			// Validate business hours (08:00–17:30 in SP)
 			const { hour, minute } = getLocalHourMinute(startAt)
 
@@ -74,13 +86,17 @@ appointmentsRouter.post(
 				return
 			}
 
-			// Verify barber has the specialty
+			// Verify barber has the specialty and both are active
 			const specCheck = await query(
-				"SELECT 1 FROM barber_specialties WHERE barber_id = $1 AND specialty_id = $2",
+				`SELECT 1 FROM barber_specialties bs
+				 JOIN barbers b ON b.id = bs.barber_id
+				 JOIN specialties s ON s.id = bs.specialty_id
+				 WHERE bs.barber_id = $1 AND bs.specialty_id = $2
+				 AND b.active = true AND s.active = true`,
 				[barberId, specialtyId],
 			)
 			if (specCheck.rows.length === 0) {
-				next(ApiError.validation("Barbeiro não atende essa especialidade"))
+				next(ApiError.validation("Barbeiro não atende essa especialidade ou recurso inativo"))
 				return
 			}
 
