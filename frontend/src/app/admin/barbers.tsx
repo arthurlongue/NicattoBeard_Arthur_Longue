@@ -24,6 +24,7 @@ import {
 	TableRow,
 } from "@/components/ui/table"
 import { ApiError } from "@/lib/auth-context"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useBarbers, useCreateBarber, useSpecialties, useUpdateBarber } from "@/lib/queries"
 
 function getTodayDateInputValue() {
@@ -33,6 +34,7 @@ function getTodayDateInputValue() {
 }
 
 export function AdminBarbers() {
+	const isMobile = useIsMobile()
 	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers()
 	const { data: specialties = [], isLoading: loadingSpecs } = useSpecialties()
 
@@ -202,58 +204,28 @@ export function AdminBarbers() {
 				</Dialog>
 			</div>
 
-			<div className="overflow-x-auto rounded-md border bg-background">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Nome</TableHead>
-							<TableHead>Idade</TableHead>
-							<TableHead>Especialidades</TableHead>
-							<TableHead>Contratação</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead className="text-right">Ações</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{loadingBarbers ? (
-							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center">
-									<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-								</TableCell>
-							</TableRow>
-						) : barbers.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center">
-									Nenhum barbeiro cadastrado.
-								</TableCell>
-							</TableRow>
-						) : (
-							barbers.map((barber) => (
-								<TableRow key={barber.id}>
-									<TableCell className="font-medium">{barber.name}</TableCell>
-									<TableCell>{barber.age} anos</TableCell>
-									<TableCell>
-										<div className="flex flex-wrap gap-1">
-											{barber.specialties.map((s) => (
-												<Badge key={s.id} variant="secondary">
-													{s.name}
-												</Badge>
-											))}
-										</div>
-									</TableCell>
-									<TableCell>{new Date(barber.hireDate).toLocaleDateString("pt-BR")}</TableCell>
-									<TableCell>
+			{isMobile ? (
+				<div className="space-y-3">
+					{loadingBarbers ? (
+						<div className="flex justify-center py-8">
+							<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+						</div>
+					) : barbers.length === 0 ? (
+						<p className="py-8 text-center text-muted-foreground">Nenhum barbeiro cadastrado.</p>
+					) : (
+						barbers.map((barber) => (
+							<div key={barber.id} className="rounded-lg border bg-background p-4 space-y-3">
+								<div className="flex items-center justify-between">
+									<span className="font-medium">{barber.name}</span>
+									<div className="flex items-center gap-2">
 										<Badge variant={barber.active !== false ? "default" : "secondary"}>
 											{barber.active !== false ? "Ativo" : "Inativo"}
 										</Badge>
-									</TableCell>
-									<TableCell className="text-right">
 										<Button
 											variant="ghost"
 											size="icon"
 											onClick={() => handleToggleActive(barber.id, barber.active !== false)}
 											disabled={updateMutation.isPending}
-											title={barber.active !== false ? "Desativar" : "Ativar"}
 											aria-label={barber.active !== false ? "Desativar" : "Ativar"}
 										>
 											{barber.active !== false ? (
@@ -262,13 +234,94 @@ export function AdminBarbers() {
 												<Power className="h-4 w-4 text-primary" />
 											)}
 										</Button>
+									</div>
+								</div>
+								<div className="text-muted-foreground text-sm space-y-1">
+									<p>
+										{barber.age} anos • Desde{" "}
+										{new Date(barber.hireDate).toLocaleDateString("pt-BR")}
+									</p>
+									<div className="flex flex-wrap gap-1">
+										{barber.specialties.map((s) => (
+											<Badge key={s.id} variant="secondary">
+												{s.name}
+											</Badge>
+										))}
+									</div>
+								</div>
+							</div>
+						))
+					)}
+				</div>
+			) : (
+				<div className="overflow-x-auto rounded-md border bg-background">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Nome</TableHead>
+								<TableHead>Idade</TableHead>
+								<TableHead>Especialidades</TableHead>
+								<TableHead>Contratação</TableHead>
+								<TableHead>Status</TableHead>
+								<TableHead className="text-right">Ações</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{loadingBarbers ? (
+								<TableRow>
+									<TableCell colSpan={6} className="h-24 text-center">
+										<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
 									</TableCell>
 								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
+							) : barbers.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={6} className="h-24 text-center">
+										Nenhum barbeiro cadastrado.
+									</TableCell>
+								</TableRow>
+							) : (
+								barbers.map((barber) => (
+									<TableRow key={barber.id}>
+										<TableCell className="font-medium">{barber.name}</TableCell>
+										<TableCell>{barber.age} anos</TableCell>
+										<TableCell>
+											<div className="flex flex-wrap gap-1">
+												{barber.specialties.map((s) => (
+													<Badge key={s.id} variant="secondary">
+														{s.name}
+													</Badge>
+												))}
+											</div>
+										</TableCell>
+										<TableCell>{new Date(barber.hireDate).toLocaleDateString("pt-BR")}</TableCell>
+										<TableCell>
+											<Badge variant={barber.active !== false ? "default" : "secondary"}>
+												{barber.active !== false ? "Ativo" : "Inativo"}
+											</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => handleToggleActive(barber.id, barber.active !== false)}
+												disabled={updateMutation.isPending}
+												title={barber.active !== false ? "Desativar" : "Ativar"}
+												aria-label={barber.active !== false ? "Desativar" : "Ativar"}
+											>
+												{barber.active !== false ? (
+													<PowerOff className="h-4 w-4 text-destructive" />
+												) : (
+													<Power className="h-4 w-4 text-primary" />
+												)}
+											</Button>
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</div>
+			)}
 		</div>
 	)
 }

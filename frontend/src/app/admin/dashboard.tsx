@@ -12,10 +12,12 @@ import {
 	TableRow,
 } from "@/components/ui/table"
 import { useAdminAppointments } from "@/lib/queries"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function AdminDashboard() {
 	const [scope, setScope] = useState<"today" | "future">("today")
 	const { data: appointments = [], isLoading } = useAdminAppointments(scope)
+	const isMobile = useIsMobile()
 
 	// Since we don't have a separate stats endpoint in the API contract,
 	// we calculate stats based on the data we have for the current scope.
@@ -93,61 +95,102 @@ export function AdminDashboard() {
 					</Button>
 				</div>
 
-				<div className="overflow-x-auto rounded-md border bg-background">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Horário</TableHead>
-								<TableHead>Cliente</TableHead>
-								<TableHead>Barbeiro</TableHead>
-								<TableHead>Serviço</TableHead>
-								<TableHead>Status</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{isLoading ? (
+				{isMobile ? (
+					<div className="space-y-3">
+						{isLoading ? (
+							<div className="flex justify-center py-8">
+								<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+							</div>
+						) : appointments.length === 0 ? (
+							<p className="py-8 text-center text-muted-foreground">
+								Nenhum agendamento encontrado para este período.
+							</p>
+						) : (
+							appointments.map((app) => (
+								<div key={app.id} className="rounded-lg border bg-background p-4 space-y-3">
+									<div className="flex items-center justify-between">
+										<span className="font-medium">{app.customer.name}</span>
+										<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
+											{app.status === "scheduled" ? "Agendado" : "Cancelado"}
+										</Badge>
+									</div>
+									<div className="text-muted-foreground text-sm space-y-1">
+										<div className="flex items-center gap-2">
+											<Clock className="h-4 w-4" />
+											{new Date(app.startAt).toLocaleTimeString("pt-BR", {
+												hour: "2-digit",
+												minute: "2-digit",
+											})}
+											{scope === "future" && (
+												<span className="text-xs">
+													({new Date(app.startAt).toLocaleDateString("pt-BR")})
+												</span>
+											)}
+										</div>
+										<p>Barbeiro: {app.barber.name}</p>
+										<p>Serviço: {app.specialty.name}</p>
+									</div>
+								</div>
+							))
+						)}
+					</div>
+				) : (
+					<div className="overflow-x-auto rounded-md border bg-background">
+						<Table>
+							<TableHeader>
 								<TableRow>
-									<TableCell colSpan={5} className="h-24 text-center">
-										<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-									</TableCell>
+									<TableHead>Horário</TableHead>
+									<TableHead>Cliente</TableHead>
+									<TableHead>Barbeiro</TableHead>
+									<TableHead>Serviço</TableHead>
+									<TableHead>Status</TableHead>
 								</TableRow>
-							) : appointments.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={5} className="h-24 text-center">
-										Nenhum agendamento encontrado para este período.
-									</TableCell>
-								</TableRow>
-							) : (
-								appointments.map((app) => (
-									<TableRow key={app.id}>
-										<TableCell>
-											<div className="flex items-center gap-2">
-												<Clock className="h-4 w-4 text-muted-foreground" />
-												{new Date(app.startAt).toLocaleTimeString("pt-BR", {
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-												{scope === "future" && (
-													<span className="ml-1 text-muted-foreground text-xs">
-														({new Date(app.startAt).toLocaleDateString("pt-BR")})
-													</span>
-												)}
-											</div>
-										</TableCell>
-										<TableCell className="font-medium">{app.customer.name}</TableCell>
-										<TableCell>{app.barber.name}</TableCell>
-										<TableCell>{app.specialty.name}</TableCell>
-										<TableCell>
-											<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
-												{app.status === "scheduled" ? "Agendado" : "Cancelado"}
-											</Badge>
+							</TableHeader>
+							<TableBody>
+								{isLoading ? (
+									<TableRow>
+										<TableCell colSpan={5} className="h-24 text-center">
+											<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
 										</TableCell>
 									</TableRow>
-								))
-							)}
-						</TableBody>
-					</Table>
-				</div>
+								) : appointments.length === 0 ? (
+									<TableRow>
+										<TableCell colSpan={5} className="h-24 text-center">
+											Nenhum agendamento encontrado para este período.
+										</TableCell>
+									</TableRow>
+								) : (
+									appointments.map((app) => (
+										<TableRow key={app.id}>
+											<TableCell>
+												<div className="flex items-center gap-2">
+													<Clock className="h-4 w-4 text-muted-foreground" />
+													{new Date(app.startAt).toLocaleTimeString("pt-BR", {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+													{scope === "future" && (
+														<span className="ml-1 text-muted-foreground text-xs">
+															({new Date(app.startAt).toLocaleDateString("pt-BR")})
+														</span>
+													)}
+												</div>
+											</TableCell>
+											<TableCell className="font-medium">{app.customer.name}</TableCell>
+											<TableCell>{app.barber.name}</TableCell>
+											<TableCell>{app.specialty.name}</TableCell>
+											<TableCell>
+												<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
+													{app.status === "scheduled" ? "Agendado" : "Cancelado"}
+												</Badge>
+											</TableCell>
+										</TableRow>
+									))
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				)}
 			</div>
 		</div>
 	)
