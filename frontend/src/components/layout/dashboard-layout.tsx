@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom"
-import { useAuth } from "@/lib/auth-context"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { useAuth } from "@/lib/auth-context"
 import { AppSidebar } from "../app-sidebar"
 
 export function DashboardLayout() {

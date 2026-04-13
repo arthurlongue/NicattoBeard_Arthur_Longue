@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
-import { api, ApiError } from "./api"
+import { ApiError, api } from "./api"
 import type { LoginResponse, RegisterResponse, User } from "./types"
 
 // ── Context shape ───────────────────────────────────────────────────

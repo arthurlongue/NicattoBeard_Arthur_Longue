@@ -47,7 +47,8 @@ export function AdminSpecialties() {
 					setIsAddOpen(false)
 				},
 				onError: (err) => {
-					const message = err instanceof ApiError ? err.body.message : "Erro ao criar especialidade."
+					const message =
+						err instanceof ApiError ? err.body.message : "Erro ao criar especialidade."
 					toast.error(message)
 				},
 			},
@@ -62,7 +63,8 @@ export function AdminSpecialties() {
 					toast.success(`Especialidade ${!currentActive ? "ativada" : "desativada"} com sucesso.`)
 				},
 				onError: (err) => {
-					const message = err instanceof ApiError ? err.body.message : "Erro ao atualizar especialidade."
+					const message =
+						err instanceof ApiError ? err.body.message : "Erro ao atualizar especialidade."
 					toast.error(message)
 				},
 			},
@@ -113,7 +115,11 @@ export function AdminSpecialties() {
 							</div>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={createMutation.isPending}>
+							<Button
+								variant="outline"
+								onClick={() => setIsAddOpen(false)}
+								disabled={createMutation.isPending}
+							>
 								Cancelar
 							</Button>
 							<Button onClick={handleAdd} disabled={createMutation.isPending}>

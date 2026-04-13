@@ -1,6 +1,5 @@
 import { CalendarDays, LogOut, PlusCircle, Scissors, Users } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -15,6 +14,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/lib/auth-context"
 
 const customerItems = [
 	{ title: "Meus Agendamentos", url: "/dashboard", icon: CalendarDays },
