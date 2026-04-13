@@ -2,11 +2,20 @@ import "dotenv/config"
 import cors from "cors"
 import express from "express"
 import { z } from "zod"
+import { adminRouter } from "./routes/admin.js"
+import { appointmentsRouter } from "./routes/appointments.js"
+import { authRouter } from "./routes/auth.js"
+import { barbersRouter } from "./routes/barbers.js"
+import { specialtiesRouter } from "./routes/specialties.js"
+import { pool } from "./lib/db.js"
+import { errorHandler } from "./lib/errors.js"
 
 const envSchema = z.object({
 	PORT: z.coerce.number().int().min(1).max(65535).default(3001),
 	NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 	CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+	DATABASE_URL: z.string().url(),
+	JWT_SECRET: z.string().min(8),
 })
 
 const envResult = envSchema.safeParse(process.env)
@@ -36,16 +45,34 @@ app.use(
 
 			callback(new Error(`CORS blocked for origin "${origin}"`))
 		},
-	})
+	}),
 )
 app.use(express.json())
 
+// --- Health ---
 app.get("/api/health", (_req, res) => {
-	res.json({
-		status: "ok",
-	})
+	res.json({ status: "ok" })
 })
 
-app.listen(port, () => {
+// --- Routes ---
+app.use("/api/auth", authRouter)
+app.use("/api/specialties", specialtiesRouter)
+app.use("/api/barbers", barbersRouter)
+app.use("/api/appointments", appointmentsRouter)
+app.use("/api/admin", adminRouter)
+
+// --- Error handler (must be last) ---
+app.use(errorHandler)
+
+// --- Start ---
+const server = app.listen(port, () => {
 	console.log(`Server running on port ${port}`)
+})
+
+// --- Graceful shutdown ---
+process.on("SIGTERM", () => {
+	console.log("SIGTERM received, shutting down...")
+	server.close(() => {
+		pool.end().then(() => process.exit(0))
+	})
 })
