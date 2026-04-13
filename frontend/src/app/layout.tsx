@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom"
 import { Header } from "@/components/layout/header"
+import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 export default function RootLayout() {
@@ -11,6 +12,7 @@ export default function RootLayout() {
 					<Outlet />
 				</main>
 			</div>
+			<Toaster />
 		</TooltipProvider>
 	)
 }

@@ -1,5 +1,4 @@
-import { Calendar, Clock, Plus, XCircle } from "lucide-react"
-import { useState } from "react"
+import { Calendar, Clock, Loader2, Plus, XCircle } from "lucide-react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 import {
@@ -23,57 +22,43 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import type { Appointment } from "@/lib/types"
-
-const MOCK_USER_APPOINTMENTS: Appointment[] = [
-	{
-		id: "1",
-		customerId: "user-123",
-		customerName: "Você",
-		barberId: "b1",
-		barberName: "Arthur Longue",
-		specialtyId: "s1",
-		specialtyName: "Corte Social",
-		date: new Date(Date.now() + 3600000 * 3).toISOString(), // Em 3 horas
-		status: "scheduled",
-	},
-	{
-		id: "2",
-		customerId: "user-123",
-		customerName: "Você",
-		barberId: "b2",
-		barberName: "Diego Fernandes",
-		specialtyId: "s2",
-		specialtyName: "Barba Terapia",
-		date: new Date(Date.now() - 86400000).toISOString(), // Ontem
-		status: "completed",
-	},
-]
+import { ApiError } from "@/lib/api"
+import { useCancelAppointment, useMyAppointments } from "@/lib/queries"
+import type { CustomerAppointment } from "@/lib/types"
 
 export function CustomerDashboard() {
-	const [appointments, setAppointments] = useState<Appointment[]>(MOCK_USER_APPOINTMENTS)
+	const { data: appointments = [], isLoading } = useMyAppointments()
+	const cancelMutation = useCancelAppointment()
 
-	const handleCancel = (id: string) => {
-		const app = appointments.find((a) => a.id === id)
-		if (!app) return
-
-		const appDate = new Date(app.date)
-		const now = new Date()
-		const diffInHours = (appDate.getTime() - now.getTime()) / (1000 * 60 * 60)
-
-		if (diffInHours < 2) {
-			toast.error(
-				"Cancelamento bloqueado: Horário deve ser cancelado com no mínimo 2 horas de antecedência.",
-			)
-			return
-		}
-
-		setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a)))
-		toast.success("Agendamento cancelado com sucesso.")
+	const handleCancel = (app: CustomerAppointment) => {
+		cancelMutation.mutate(
+			{ id: app.id },
+			{
+				onSuccess: () => toast.success("Agendamento cancelado com sucesso."),
+				onError: (err) => {
+					const message =
+						err instanceof ApiError ? err.body.message : "Erro ao cancelar agendamento."
+					toast.error(message)
+				},
+			},
+		)
 	}
 
-	const upcoming = appointments.filter((a) => new Date(a.date) > new Date())
-	const past = appointments.filter((a) => new Date(a.date) <= new Date())
+	const now = new Date()
+	const upcoming = appointments.filter(
+		(a) => new Date(a.startAt) > now && a.status === "scheduled",
+	)
+	const past = appointments.filter(
+		(a) => new Date(a.startAt) <= now || a.status === "cancelled",
+	)
+
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			</div>
+		)
+	}
 
 	return (
 		<div className="space-y-6">
@@ -117,54 +102,50 @@ export function CustomerDashboard() {
 								upcoming.map((app) => (
 									<TableRow key={app.id}>
 										<TableCell className="font-medium">
-											{new Date(app.date).toLocaleDateString("pt-BR")} às{" "}
-											{new Date(app.date).toLocaleTimeString("pt-BR", {
+											{new Date(app.startAt).toLocaleDateString("pt-BR")} às{" "}
+											{new Date(app.startAt).toLocaleTimeString("pt-BR", {
 												hour: "2-digit",
 												minute: "2-digit",
 											})}
 										</TableCell>
-										<TableCell>{app.specialtyName}</TableCell>
-										<TableCell>{app.barberName}</TableCell>
+										<TableCell>{app.specialty.name}</TableCell>
+										<TableCell>{app.barber.name}</TableCell>
 										<TableCell>
-											<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
-												{app.status === "scheduled" ? "Agendado" : "Cancelado"}
-											</Badge>
+											<Badge variant="default">Agendado</Badge>
 										</TableCell>
 										<TableCell className="text-right">
-											{app.status === "scheduled" && (
-												<AlertDialog>
-													<AlertDialogTrigger
-														render={
-															<Button
-																variant="ghost"
-																size="sm"
-																className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-															/>
-														}
-													>
-														<XCircle className="mr-2 h-4 w-4" />
-														Cancelar
-													</AlertDialogTrigger>
-													<AlertDialogContent>
-														<AlertDialogHeader>
-															<AlertDialogTitle>Confirmar cancelamento?</AlertDialogTitle>
-															<AlertDialogDescription>
-																Esta ação não pode ser desfeita. O horário ficará disponível para
-																outros clientes.
-															</AlertDialogDescription>
-														</AlertDialogHeader>
-														<AlertDialogFooter>
-															<AlertDialogCancel>Voltar</AlertDialogCancel>
-															<AlertDialogAction
-																className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-																onClick={() => handleCancel(app.id)}
-															>
-																Confirmar Cancelamento
-															</AlertDialogAction>
-														</AlertDialogFooter>
-													</AlertDialogContent>
-												</AlertDialog>
-											)}
+											<AlertDialog>
+												<AlertDialogTrigger
+													render={
+														<Button
+															variant="ghost"
+															size="sm"
+															className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+														/>
+													}
+												>
+													<XCircle className="mr-2 h-4 w-4" />
+													Cancelar
+												</AlertDialogTrigger>
+												<AlertDialogContent>
+													<AlertDialogHeader>
+														<AlertDialogTitle>Confirmar cancelamento?</AlertDialogTitle>
+														<AlertDialogDescription>
+															Esta ação não pode ser desfeita. O horário ficará disponível para
+															outros clientes.
+														</AlertDialogDescription>
+													</AlertDialogHeader>
+													<AlertDialogFooter>
+														<AlertDialogCancel>Voltar</AlertDialogCancel>
+														<AlertDialogAction
+															className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+															onClick={() => handleCancel(app)}
+														>
+															Confirmar Cancelamento
+														</AlertDialogAction>
+													</AlertDialogFooter>
+												</AlertDialogContent>
+											</AlertDialog>
 										</TableCell>
 									</TableRow>
 								))
@@ -199,16 +180,12 @@ export function CustomerDashboard() {
 							) : (
 								past.map((app) => (
 									<TableRow key={app.id}>
-										<TableCell>{new Date(app.date).toLocaleDateString("pt-BR")}</TableCell>
-										<TableCell>{app.specialtyName}</TableCell>
-										<TableCell>{app.barberName}</TableCell>
+										<TableCell>{new Date(app.startAt).toLocaleDateString("pt-BR")}</TableCell>
+										<TableCell>{app.specialty.name}</TableCell>
+										<TableCell>{app.barber.name}</TableCell>
 										<TableCell>
-											<Badge variant="secondary">
-												{app.status === "completed"
-													? "Concluído"
-													: app.status === "cancelled"
-														? "Cancelado"
-														: "Agendado"}
+											<Badge variant={app.status === "cancelled" ? "destructive" : "secondary"}>
+												{app.status === "cancelled" ? "Cancelado" : "Agendado"}
 											</Badge>
 										</TableCell>
 									</TableRow>
