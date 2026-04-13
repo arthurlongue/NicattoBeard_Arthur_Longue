@@ -86,21 +86,7 @@ appointmentsRouter.post(
 				return
 			}
 
-			// Verify barber has the specialty and both are active
-			const specCheck = await query(
-				`SELECT 1 FROM barber_specialties bs
-				 JOIN barbers b ON b.id = bs.barber_id
-				 JOIN specialties s ON s.id = bs.specialty_id
-				 WHERE bs.barber_id = $1 AND bs.specialty_id = $2
-				 AND b.active = true AND s.active = true`,
-				[barberId, specialtyId],
-			)
-			if (specCheck.rows.length === 0) {
-				next(ApiError.validation("Barbeiro não atende essa especialidade ou recurso inativo"))
-				return
-			}
-
-			// Insert appointment
+			// Insert appointment (atomic check for active barber/specialty)
 			const { rows } = await query<{
 				id: number
 				status: string
@@ -111,10 +97,20 @@ appointmentsRouter.post(
 				specialty_id: number
 			}>(
 				`INSERT INTO appointments (customer_id, barber_id, specialty_id, status, start_at, end_at)
-				 VALUES ($1, $2, $3, 'scheduled', $4, $5)
+				 SELECT $1, $2, $3, 'scheduled', $4, $5
+				 FROM barber_specialties bs
+				 JOIN barbers b ON b.id = bs.barber_id
+				 JOIN specialties s ON s.id = bs.specialty_id
+				 WHERE bs.barber_id = $2 AND bs.specialty_id = $3
+				 AND b.active = true AND s.active = true
 				 RETURNING id, status, start_at, end_at, customer_id, barber_id, specialty_id`,
 				[customerId, barberId, specialtyId, startAt, endAt],
 			)
+
+			if (rows.length === 0) {
+				next(ApiError.validation("Barbeiro não atende essa especialidade ou recurso inativo"))
+				return
+			}
 
 			const apt = rows[0]
 			res.status(201).json({
