@@ -23,9 +23,11 @@ import {
 	TableRow,
 } from "@/components/ui/table"
 import { ApiError } from "@/lib/auth-context"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useCreateSpecialty, useSpecialties, useUpdateSpecialty } from "@/lib/queries"
 
 export function AdminSpecialties() {
+	const isMobile = useIsMobile()
 	const { data: specialties = [], isLoading } = useSpecialties()
 	const createMutation = useCreateSpecialty()
 	const updateMutation = useUpdateSpecialty()
@@ -130,48 +132,30 @@ export function AdminSpecialties() {
 				</Dialog>
 			</div>
 
-			<div className="overflow-x-auto rounded-md border bg-background">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Nome</TableHead>
-							<TableHead>Descrição</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead className="text-right">Ações</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{isLoading ? (
-							<TableRow>
-								<TableCell colSpan={4} className="h-24 text-center">
-									<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-								</TableCell>
-							</TableRow>
-						) : specialties.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={4} className="h-24 text-center">
-									Nenhuma especialidade cadastrada.
-								</TableCell>
-							</TableRow>
-						) : (
-							specialties.map((specialty) => (
-								<TableRow key={specialty.id}>
-									<TableCell className="font-medium">{specialty.name}</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										{specialty.description || "-"}
-									</TableCell>
-									<TableCell>
+			{isMobile ? (
+				<div className="space-y-3">
+					{isLoading ? (
+						<div className="flex justify-center py-8">
+							<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+						</div>
+					) : specialties.length === 0 ? (
+						<p className="py-8 text-center text-muted-foreground">
+							Nenhuma especialidade cadastrada.
+						</p>
+					) : (
+						specialties.map((specialty) => (
+							<div key={specialty.id} className="rounded-lg border bg-background p-4 space-y-2">
+								<div className="flex items-center justify-between">
+									<span className="font-medium">{specialty.name}</span>
+									<div className="flex items-center gap-2">
 										<Badge variant={specialty.active !== false ? "default" : "secondary"}>
 											{specialty.active !== false ? "Ativo" : "Inativo"}
 										</Badge>
-									</TableCell>
-									<TableCell className="text-right">
 										<Button
 											variant="ghost"
 											size="icon"
 											onClick={() => handleToggleActive(specialty.id, specialty.active !== false)}
 											disabled={updateMutation.isPending}
-											title={specialty.active !== false ? "Desativar" : "Ativar"}
 											aria-label={specialty.active !== false ? "Desativar" : "Ativar"}
 										>
 											{specialty.active !== false ? (
@@ -180,13 +164,74 @@ export function AdminSpecialties() {
 												<Power className="h-4 w-4 text-primary" />
 											)}
 										</Button>
+									</div>
+								</div>
+								{specialty.description && (
+									<p className="text-muted-foreground text-sm">{specialty.description}</p>
+								)}
+							</div>
+						))
+					)}
+				</div>
+			) : (
+				<div className="overflow-x-auto rounded-md border bg-background">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Nome</TableHead>
+								<TableHead>Descrição</TableHead>
+								<TableHead>Status</TableHead>
+								<TableHead className="text-right">Ações</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{isLoading ? (
+								<TableRow>
+									<TableCell colSpan={4} className="h-24 text-center">
+										<Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
 									</TableCell>
 								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
+							) : specialties.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={4} className="h-24 text-center">
+										Nenhuma especialidade cadastrada.
+									</TableCell>
+								</TableRow>
+							) : (
+								specialties.map((specialty) => (
+									<TableRow key={specialty.id}>
+										<TableCell className="font-medium">{specialty.name}</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											{specialty.description || "-"}
+										</TableCell>
+										<TableCell>
+											<Badge variant={specialty.active !== false ? "default" : "secondary"}>
+												{specialty.active !== false ? "Ativo" : "Inativo"}
+											</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={() => handleToggleActive(specialty.id, specialty.active !== false)}
+												disabled={updateMutation.isPending}
+												title={specialty.active !== false ? "Desativar" : "Ativar"}
+												aria-label={specialty.active !== false ? "Desativar" : "Ativar"}
+											>
+												{specialty.active !== false ? (
+													<PowerOff className="h-4 w-4 text-destructive" />
+												) : (
+													<Power className="h-4 w-4 text-primary" />
+												)}
+											</Button>
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</div>
+			)}
 		</div>
 	)
 }
