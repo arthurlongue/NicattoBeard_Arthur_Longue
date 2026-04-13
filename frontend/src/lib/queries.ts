@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "./api"
 import type {
 	AdminAppointment,
@@ -30,12 +30,20 @@ export function useSpecialties() {
 	})
 }
 
+/** Invalidate both specialties and barbers caches (used after any catalog mutation) */
+function invalidateCatalog(qc: QueryClient) {
+	return Promise.all([
+		qc.invalidateQueries({ queryKey: keys.specialties }),
+		qc.invalidateQueries({ queryKey: ["barbers"] }),
+	])
+}
+
 export function useCreateSpecialty() {
 	const qc = useQueryClient()
 	return useMutation({
 		mutationFn: (data: { name: string; description?: string }) =>
 			api.post<Specialty>("/specialties", data),
-		onSuccess: () => qc.invalidateQueries({ queryKey: keys.specialties }),
+		onSuccess: () => invalidateCatalog(qc),
 	})
 }
 
@@ -51,7 +59,7 @@ export function useUpdateSpecialty() {
 			description?: string
 			active?: boolean
 		}) => api.patch<Specialty>(`/specialties/${id}`, data),
-		onSuccess: () => qc.invalidateQueries({ queryKey: keys.specialties }),
+		onSuccess: () => invalidateCatalog(qc),
 	})
 }
 
@@ -70,7 +78,7 @@ export function useCreateBarber() {
 	return useMutation({
 		mutationFn: (data: { name: string; age: number; hireDate: string; specialtyIds: number[] }) =>
 			api.post<Barber>("/barbers", data),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["barbers"] }),
+		onSuccess: () => invalidateCatalog(qc),
 	})
 }
 
@@ -79,7 +87,7 @@ export function useUpdateBarber() {
 	return useMutation({
 		mutationFn: ({ id, ...data }: { id: number; name?: string; age?: number; active?: boolean }) =>
 			api.patch<Barber>(`/barbers/${id}`, data),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["barbers"] }),
+		onSuccess: () => invalidateCatalog(qc),
 	})
 }
 
@@ -91,7 +99,7 @@ export function useSetBarberSpecialties() {
 				`/barbers/${barberId}/specialties`,
 				{ specialtyIds },
 			),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["barbers"] }),
+		onSuccess: () => invalidateCatalog(qc),
 	})
 }
 
