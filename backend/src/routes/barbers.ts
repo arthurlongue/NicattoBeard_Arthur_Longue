@@ -111,13 +111,13 @@ barbersRouter.get("/", validate(listQuerySchema, "query"), async (_req, res, nex
 			SELECT b.id, b.name, b.age, b.hire_date, s.id AS specialty_id, s.name AS specialty_name
 			FROM barbers b
 			LEFT JOIN barber_specialties bs ON bs.barber_id = b.id
-			LEFT JOIN specialties s ON s.id = bs.specialty_id
+			LEFT JOIN specialties s ON s.id = bs.specialty_id AND s.active = true
 			WHERE b.active = true
 		`
 		const params: unknown[] = []
 
 		if (specialtyId) {
-			sql += ` AND b.id IN (SELECT barber_id FROM barber_specialties WHERE specialty_id = $1)`
+			sql += ` AND b.id IN (SELECT bs2.barber_id FROM barber_specialties bs2 JOIN specialties s2 ON s2.id = bs2.specialty_id WHERE bs2.specialty_id = $1 AND s2.active = true)`
 			params.push(specialtyId)
 		}
 
@@ -324,9 +324,11 @@ barbersRouter.get(
 				return
 			}
 
-			// Check barber has the specialty
+			// Check barber has the specialty and it is active
 			const specCheck = await query(
-				"SELECT 1 FROM barber_specialties WHERE barber_id = $1 AND specialty_id = $2",
+				`SELECT 1 FROM barber_specialties bs
+				 JOIN specialties s ON s.id = bs.specialty_id
+				 WHERE bs.barber_id = $1 AND bs.specialty_id = $2 AND s.active = true`,
 				[barberId, specialtyId],
 			)
 			if (specCheck.rows.length === 0) {
