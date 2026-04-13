@@ -30,8 +30,22 @@ export function NewAppointment() {
 		timeLabel: "" as string, // display label like "08:00"
 	})
 
-	// Step 1: fetch specialties
-	const { data: specialties = [], isLoading: loadingSpecs } = useSpecialties()
+	// Step 1: fetch all specialties
+	const { data: allSpecialties = [], isLoading: loadingSpecs } = useSpecialties()
+
+	// Fetch all active barbers to determine which specialties have barbers
+	const { data: allBarbers = [] } = useBarbers()
+
+	// Build set of specialty IDs that have at least one active barber
+	const specialtiesWithBarbers = new Set<number>()
+	for (const b of allBarbers) {
+		for (const s of b.specialties) {
+			specialtiesWithBarbers.add(s.id)
+		}
+	}
+
+	// Only show specialties that have at least one barber available
+	const specialties = allSpecialties.filter((s) => specialtiesWithBarbers.has(s.id))
 
 	// Step 2: fetch barbers filtered by specialty
 	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers(selection.specialty?.id)
@@ -107,6 +121,10 @@ export function NewAppointment() {
 						<div className="flex justify-center py-8">
 							<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 						</div>
+					) : specialties.length === 0 ? (
+						<p className="py-8 text-center text-muted-foreground">
+							Nenhum serviço disponível no momento.
+						</p>
 					) : (
 						<div className="grid gap-4 md:grid-cols-3">
 							{specialties.map((spec) => (

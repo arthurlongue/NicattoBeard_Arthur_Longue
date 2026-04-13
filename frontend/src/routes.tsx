@@ -15,6 +15,7 @@ import NotFound from "./app/not-found"
 import { HomePage } from "./app/page"
 import { AuthLayout } from "./components/layout/auth-layout"
 import { DashboardLayout } from "./components/layout/dashboard-layout"
+import { GuestRoute } from "./components/layout/guest-route"
 import { ProtectedRoute } from "./components/layout/protected-route"
 
 export const router = createBrowserRouter([
@@ -26,7 +27,11 @@ export const router = createBrowserRouter([
 				element: <HomePage />,
 			},
 			{
-				element: <AuthLayout />,
+				element: (
+					<GuestRoute>
+						<AuthLayout />
+					</GuestRoute>
+				),
 				children: [
 					{
 						path: "login",
