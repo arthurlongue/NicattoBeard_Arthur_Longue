@@ -15,46 +15,34 @@ Documentacao: [`docs/PRD.md`](docs/PRD.md) (requisitos do produto), [`docs/API.m
 ## Diretriz de validacao
 
 - TypeScript tipa codigo, mas nao valida payload recebido em runtime.
-- Backend usa `Zod` como camada recomendada para validar entrada na borda da aplicacao.
+- Backend usa `Zod` como camada para validar entrada na borda da aplicacao.
 - Validar `req.body`, `req.params`, `req.query` e variaveis de ambiente antes da regra de negocio.
 - `422` fica reservado para entrada invalida. Regras de negocio continuam na camada de servico e no banco, como e-mail duplicado, conflito de horario e janela de cancelamento.
 
-## Executando Localmente
+## Rodando o projeto
 
-### Quick Start (Docker)
-
-Opcional: copie o exemplo da raiz se quiser sobrescrever portas, credenciais do Postgres, `NODE_ENV` ou `JWT_SECRET` do ambiente Docker local.
-
-```bash
-cp .env.example .env
-```
-
-Se nao copiar, os defaults do `docker-compose.yml` ja sobem o ambiente.
-
-Observacao: `JWT_SECRET` agora exige no minimo 32 caracteres.
+**Pre-requisito:** Docker + Docker Compose.
 
 ```bash
 pnpm docker:dev
 ```
 
-Pre-requisito: Docker + Docker Compose.
+Na primeira subida, o Postgres executa automaticamente os scripts em `database/sql/`, carregando schema + dados de exemplo (barbeiros, especialidades, relacoes e agendamentos).
 
-Na primeira subida, carrega barbeiros, especialidades, relacoes barbeiro-especialidade e agendamentos de exemplo.
+| Service     | URL                       |
+|-------------|---------------------------|
+| Frontend    | http://localhost:5173     |
+| Backend API | http://localhost:3001     |
+| PostgreSQL  | localhost:5432            |
 
-| Service     | URL                   |
-|-------------|-----------------------|
-| Frontend    | http://localhost:5173 |
-| Backend API | http://localhost:3001 |
-| PostgreSQL  | localhost:5432        |
-
-#### Credenciais de teste
+### Credenciais de teste
 
 | Role     | Email                  | Password    |
 |----------|------------------------|-------------|
 | Admin    | admin@nicattobeard.com | Admin@123   |
 | Customer | joao.silva@example.com | Cliente@123 |
 
-#### Comandos uteis
+### Comandos uteis
 
 ```bash
 pnpm docker:dev     # Start all services
@@ -63,79 +51,17 @@ pnpm docker:reset   # Stop + reset DB volume
 docker compose logs -f
 ```
 
-#### Papel dos arquivos Docker
+### Personalizando portas
 
-- `docker-compose.yml`: stack local completa.
-- `backend/Dockerfile`: container de desenvolvimento do backend usado pelo compose.
-- `frontend/Dockerfile.dev`: container de desenvolvimento do frontend usado pelo compose.
-- `Dockerfile`: imagem full-stack para deploy, servindo API + frontend no mesmo processo HTTP.
-
-### Desenvolvimento manual (sem Docker)
-
-**Pre-requisitos:** Node.js 20+, pnpm, PostgreSQL 15+, `psql`
-
-1. Copie os exemplos de ambiente:
+Se alguma porta estiver ocupada, copie o `.env.example` da raiz e ajuste:
 
 ```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+cp .env.example .env
 ```
 
-No backend, defina `NODE_ENV` explicitamente (`development`, `test` ou `production`) e use `JWT_SECRET` com no minimo 32 caracteres.
+Variaveis disponiveis: `HOST_FRONTEND_PORT`, `HOST_BACKEND_PORT`, `HOST_POSTGRES_PORT`, `JWT_SECRET` (min 32 caracteres).
 
-2. Crie o banco local e aplique os SQLs:
-
-```bash
-createdb -U admin nicattobeard_db
-psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/001_schema.sql
-psql postgresql://admin:adminpassword@localhost:5432/nicattobeard_db -f database/sql/002_seed.sql
-```
-
-3. Instale dependencias do monorepo leve:
-
-```bash
-pnpm install
-```
-
-4. Suba front + back juntos:
-
-```bash
-pnpm dev
-```
-
-Ou rode separado:
-
-```bash
-pnpm dev:backend
-pnpm dev:frontend
-```
-
-Servicos padrao:
-
-| Servico     | URL                           |
-|-------------|-------------------------------|
-| Frontend    | http://localhost:5173         |
-| Backend API | http://localhost:3001         |
-| Healthcheck | http://localhost:3001/api/health |
-
-Notas de dev sem Docker:
-
-- `frontend` usa proxy `/api` para `http://localhost:3001`.
-- Se `5173` estiver ocupada, o Vite sobe na proxima porta livre sozinho.
-- `backend` aceita requisicoes de `localhost` e `127.0.0.1` em qualquer porta de dev, entao o CORS nao quebra quando o frontend muda.
-- Se `3001` estiver ocupada, troque `PORT` no `backend/.env` e `VITE_API_PROXY_TARGET` no `frontend/.env` para a mesma URL.
-
-Notas de Docker:
-
-- Por padrao, Docker publica `5173`, `3001` e `5432`.
-- Se alguma estiver ocupada, sobrescreva `HOST_FRONTEND_PORT`, `HOST_BACKEND_PORT` e/ou `HOST_POSTGRES_PORT`.
-- Se mudar a porta publicada do frontend no Docker, tambem passe `CORS_ORIGIN=http://localhost:<porta>`.
-
-Exemplo:
-
-```bash
-HOST_FRONTEND_PORT=5174 CORS_ORIGIN=http://localhost:5174 pnpm docker:dev
-```
+Se mudar a porta do frontend, passe tambem `CORS_ORIGIN=http://localhost:<porta>`.
 
 ## Modelo do Banco
 
@@ -175,7 +101,7 @@ erDiagram
     USERS ||--o{ APPOINTMENTS : books
     BARBERS ||--o{ BARBER_SPECIALTIES : has
     SPECIALTIES ||--o{ BARBER_SPECIALTIES : qualifies
-    BARBER_SPECIALTIES ||--o{ APPOINTMENTS : validates
+    BARBER_SPECIALTIES --o{ APPOINTMENTS : validates
 ```
 
 - `users -> appointments`: a customer can create many appointments.
