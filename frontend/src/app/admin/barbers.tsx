@@ -105,7 +105,7 @@ export function AdminBarbers() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="font-bold text-2xl tracking-tight">Barbeiros</h1>
 					<p className="mt-2 text-muted-foreground">
@@ -202,7 +202,7 @@ export function AdminBarbers() {
 				</Dialog>
 			</div>
 
-			<div className="rounded-md border bg-background">
+			<div className="overflow-x-auto rounded-md border bg-background">
 				<Table>
 					<TableHeader>
 						<TableRow>
@@ -254,6 +254,7 @@ export function AdminBarbers() {
 											onClick={() => handleToggleActive(barber.id, barber.active !== false)}
 											disabled={updateMutation.isPending}
 											title={barber.active !== false ? "Desativar" : "Ativar"}
+											aria-label={barber.active !== false ? "Desativar" : "Ativar"}
 										>
 											{barber.active !== false ? (
 												<PowerOff className="h-4 w-4 text-destructive" />
