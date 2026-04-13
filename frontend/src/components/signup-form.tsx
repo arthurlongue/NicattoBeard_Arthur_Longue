@@ -1,11 +1,11 @@
 import { type FormEvent, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { ApiError, useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { ApiError, useAuth } from "@/lib/auth-context"
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 	const navigate = useNavigate()

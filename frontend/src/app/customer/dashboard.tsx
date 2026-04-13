@@ -45,12 +45,8 @@ export function CustomerDashboard() {
 	}
 
 	const now = new Date()
-	const upcoming = appointments.filter(
-		(a) => new Date(a.startAt) > now && a.status === "scheduled",
-	)
-	const past = appointments.filter(
-		(a) => new Date(a.startAt) <= now || a.status === "cancelled",
-	)
+	const upcoming = appointments.filter((a) => new Date(a.startAt) > now && a.status === "scheduled")
+	const past = appointments.filter((a) => new Date(a.startAt) <= now || a.status === "cancelled")
 
 	if (isLoading) {
 		return (

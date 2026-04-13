@@ -35,7 +35,7 @@ function getTodayDateInputValue() {
 export function AdminBarbers() {
 	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers()
 	const { data: specialties = [], isLoading: loadingSpecs } = useSpecialties()
-	
+
 	const createMutation = useCreateBarber()
 	const updateMutation = useUpdateBarber()
 
@@ -165,7 +165,7 @@ export function AdminBarbers() {
 										<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
 									</div>
 								) : (
-									<div className="mt-2 grid grid-cols-2 gap-2 max-h-[150px] overflow-y-auto pr-2">
+									<div className="mt-2 grid max-h-[150px] grid-cols-2 gap-2 overflow-y-auto pr-2">
 										{specialties.map((specialty) => (
 											<div key={specialty.id} className="flex items-center space-x-2">
 												<Checkbox
@@ -187,7 +187,11 @@ export function AdminBarbers() {
 							</div>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={createMutation.isPending}>
+							<Button
+								variant="outline"
+								onClick={() => setIsAddOpen(false)}
+								disabled={createMutation.isPending}
+							>
 								Cancelar
 							</Button>
 							<Button onClick={handleAdd} disabled={createMutation.isPending}>

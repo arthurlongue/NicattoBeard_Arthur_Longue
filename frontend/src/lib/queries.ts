@@ -42,8 +42,15 @@ export function useCreateSpecialty() {
 export function useUpdateSpecialty() {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, ...data }: { id: number; name?: string; description?: string; active?: boolean }) =>
-			api.patch<Specialty>(`/specialties/${id}`, data),
+		mutationFn: ({
+			id,
+			...data
+		}: {
+			id: number
+			name?: string
+			description?: string
+			active?: boolean
+		}) => api.patch<Specialty>(`/specialties/${id}`, data),
 		onSuccess: () => qc.invalidateQueries({ queryKey: keys.specialties }),
 	})
 }
@@ -90,7 +97,11 @@ export function useSetBarberSpecialties() {
 
 // ── Availability ────────────────────────────────────────────────────
 
-export function useAvailability(barberId: number | undefined, date: string | undefined, specialtyId: number | undefined) {
+export function useAvailability(
+	barberId: number | undefined,
+	date: string | undefined,
+	specialtyId: number | undefined,
+) {
 	return useQuery({
 		queryKey: keys.availability(barberId!, date!, specialtyId!),
 		queryFn: () =>

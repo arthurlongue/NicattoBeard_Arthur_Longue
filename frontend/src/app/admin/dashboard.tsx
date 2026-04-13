@@ -17,13 +17,15 @@ export function AdminDashboard() {
 	const [scope, setScope] = useState<"today" | "future">("today")
 	const { data: appointments = [], isLoading } = useAdminAppointments(scope)
 
-	// Since we don't have a separate stats endpoint in the API contract, 
+	// Since we don't have a separate stats endpoint in the API contract,
 	// we calculate stats based on the data we have for the current scope.
 	// Note: For real stats, we might need a dedicated endpoint or fetch both scopes.
 	// For now, let's just use what we have in view.
 	const stats = {
 		total: appointments.length,
-		completed: appointments.filter((a) => a.status === "scheduled" && new Date(a.endAt) < new Date()).length, // Heuristic for v1
+		completed: appointments.filter(
+			(a) => a.status === "scheduled" && new Date(a.endAt) < new Date(),
+		).length, // Heuristic for v1
 		future: scope === "future" ? appointments.length : 0,
 	}
 
@@ -53,7 +55,9 @@ export function AdminDashboard() {
 						<CheckCircle2 className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="font-bold text-2xl text-primary capitalize">{scope === "today" ? "Hoje" : "Futuro"}</div>
+						<div className="font-bold text-2xl text-primary capitalize">
+							{scope === "today" ? "Hoje" : "Futuro"}
+						</div>
 						<p className="text-muted-foreground text-xs">visão selecionada</p>
 					</CardContent>
 				</Card>
@@ -63,7 +67,9 @@ export function AdminDashboard() {
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="font-bold text-2xl">{appointments.filter(a => a.status === 'scheduled').length}</div>
+						<div className="font-bold text-2xl">
+							{appointments.filter((a) => a.status === "scheduled").length}
+						</div>
 						<p className="text-muted-foreground text-xs">ativos</p>
 					</CardContent>
 				</Card>
@@ -132,16 +138,8 @@ export function AdminDashboard() {
 										<TableCell>{app.barber.name}</TableCell>
 										<TableCell>{app.specialty.name}</TableCell>
 										<TableCell>
-											<Badge
-												variant={
-													app.status === "scheduled"
-														? "default"
-														: "destructive"
-												}
-											>
-												{app.status === "scheduled"
-													? "Agendado"
-													: "Cancelado"}
+											<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
+												{app.status === "scheduled" ? "Agendado" : "Cancelado"}
 											</Badge>
 										</TableCell>
 									</TableRow>

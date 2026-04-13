@@ -1,6 +1,13 @@
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, Clock, Loader2 } from "lucide-react"
+import {
+	ArrowLeft,
+	ArrowRight,
+	Calendar as CalendarIcon,
+	Check,
+	Clock,
+	Loader2,
+} from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -27,9 +34,7 @@ export function NewAppointment() {
 	const { data: specialties = [], isLoading: loadingSpecs } = useSpecialties()
 
 	// Step 2: fetch barbers filtered by specialty
-	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers(
-		selection.specialty?.id,
-	)
+	const { data: barbers = [], isLoading: loadingBarbers } = useBarbers(selection.specialty?.id)
 
 	// Step 3: fetch availability for selected barber + date + specialty
 	const dateStr = selection.date ? format(selection.date, "yyyy-MM-dd") : undefined
@@ -56,8 +61,7 @@ export function NewAppointment() {
 					navigate("/dashboard")
 				},
 				onError: (err) => {
-					const message =
-						err instanceof ApiError ? err.body.message : "Erro ao criar agendamento."
+					const message = err instanceof ApiError ? err.body.message : "Erro ao criar agendamento."
 					toast.error(message)
 				},
 			},
@@ -267,8 +271,7 @@ export function NewAppointment() {
 									{selection.specialty?.name} com {selection.barber?.name}
 								</p>
 								<p className="text-xs opacity-90">
-									{selection.date && format(selection.date, "dd/MM/yyyy")} às{" "}
-									{selection.timeLabel}
+									{selection.date && format(selection.date, "dd/MM/yyyy")} às {selection.timeLabel}
 								</p>
 							</div>
 							<Button
