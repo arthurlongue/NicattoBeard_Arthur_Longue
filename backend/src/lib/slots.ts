@@ -9,57 +9,11 @@ export interface Slot {
 }
 
 /**
- * Get the UTC offset in minutes for a given date in São Paulo.
+ * Get the exact UTC offset in minutes for a given date in São Paulo.
  * Positive = ahead of UTC, negative = behind.
  */
 function getSPOffsetMinutes(date: Date): number {
-	// Format time in both UTC and SP, compare the difference
-	const utcParts = new Intl.DateTimeFormat("en-US", {
-		timeZone: "UTC",
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		hour12: false,
-	}).formatToParts(date)
-
-	const spParts = new Intl.DateTimeFormat("en-US", {
-		timeZone: TZ,
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-		hour: "2-digit",
-		minute: "2-digit",
-		hour12: false,
-	}).formatToParts(date)
-
-	const get = (parts: Intl.DateTimeFormatPart[], type: string) =>
-		Number(parts.find((p) => p.type === type)?.value ?? 0)
-
-	// Build minutes-since-epoch-ish for comparison (just need relative diff)
-	const utcTotal =
-		get(utcParts, "year") * 525960 +
-		get(utcParts, "month") * 43800 +
-		get(utcParts, "day") * 1440 +
-		get(utcParts, "hour") * 60 +
-		get(utcParts, "minute")
-
-	const spTotal =
-		get(spParts, "year") * 525960 +
-		get(spParts, "month") * 43800 +
-		get(spParts, "day") * 1440 +
-		get(spParts, "hour") * 60 +
-		get(spParts, "minute")
-
-	return spTotal - utcTotal
-}
-
-/**
- * Format a Date to ISO 8601 with the São Paulo offset.
- */
-export function toSaoPauloISO(date: Date): string {
-	const formatter = new Intl.DateTimeFormat("en-CA", {
+	const parts = new Intl.DateTimeFormat("en-CA", {
 		timeZone: TZ,
 		year: "numeric",
 		month: "2-digit",
@@ -68,11 +22,31 @@ export function toSaoPauloISO(date: Date): string {
 		minute: "2-digit",
 		second: "2-digit",
 		hour12: false,
-	})
+	}).formatToParts(date)
 
-	const parts = formatter.formatToParts(date)
 	const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
+	const isoLocalStr = `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`
+	
+	const mockUtcDate = new Date(`${isoLocalStr}Z`)
+	return Math.round((mockUtcDate.getTime() - date.getTime()) / 60000)
+}
 
+/**
+ * Format a Date to ISO 8601 with the São Paulo offset.
+ */
+export function toSaoPauloISO(date: Date): string {
+	const parts = new Intl.DateTimeFormat("en-CA", {
+		timeZone: TZ,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: false,
+	}).formatToParts(date)
+
+	const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
 	const iso = `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`
 
 	const offsetMin = getSPOffsetMinutes(date)
