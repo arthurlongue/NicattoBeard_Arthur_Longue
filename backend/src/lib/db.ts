@@ -7,6 +7,7 @@ types.setTypeParser(1082, (val) => val)
 
 export const pool = new Pool({
 	connectionString: process.env.DATABASE_URL,
+	min: 0,
 	max: 10,
 	connectionTimeoutMillis: 5000,
 })
