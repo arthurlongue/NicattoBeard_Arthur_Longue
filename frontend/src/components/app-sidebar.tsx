@@ -1,5 +1,7 @@
-import { CalendarDays, PlusCircle, Scissors, Users } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { CalendarDays, LogOut, PlusCircle, Scissors, Users } from "lucide-react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useAuth } from "@/lib/auth-context"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
 	Sidebar,
@@ -27,7 +29,14 @@ const adminItems = [
 
 export function AppSidebar({ userRole }: { userRole: "admin" | "customer" }) {
 	const location = useLocation()
+	const navigate = useNavigate()
+	const { logout, user } = useAuth()
 	const items = userRole === "admin" ? adminItems : customerItems
+
+	const handleLogout = () => {
+		logout()
+		navigate("/login")
+	}
 
 	return (
 		<Sidebar>
@@ -55,10 +64,14 @@ export function AppSidebar({ userRole }: { userRole: "admin" | "customer" }) {
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
-			<SidebarFooter className="p-4">
+			<SidebarFooter className="space-y-2 p-4">
 				<span className="text-muted-foreground text-sm">
-					Logado como {userRole === "admin" ? "Administrador" : "Cliente"}
+					{user?.name ?? (userRole === "admin" ? "Administrador" : "Cliente")}
 				</span>
+				<Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleLogout}>
+					<LogOut className="mr-2 h-4 w-4" />
+					Sair
+				</Button>
 			</SidebarFooter>
 		</Sidebar>
 	)

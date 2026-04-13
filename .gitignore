@@ -39,3 +39,7 @@ backend/.env
 *.sln
 *.sw?
 AGENTS.md
+
+# Tests
+backend/tests/
+backend/vitest.config.ts

@@ -162,7 +162,3 @@ erDiagram
 - `users -> appointments`: a customer can create many appointments.
 - `barbers <-> specialties`: many-to-many relation through `barber_specialties`.
 - `appointments -> barber_specialties`: composite FK `(barber_id, specialty_id)` ensures an appointment only uses a specialty offered by that barber.
-
-## Deploy
-
-`docker-compose.prod.yml` contem a configuracao de deploy do frontend para EasyPanel / Traefik. Em producao, PostgreSQL deve ser provido externamente.
