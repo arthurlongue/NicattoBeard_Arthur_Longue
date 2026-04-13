@@ -60,23 +60,40 @@ export function toSaoPauloISO(date: Date): string {
 
 /**
  * Get start of day in São Paulo as UTC Date.
+ * Accurately handles historical DST transitions where local midnight was skipped or repeated.
  */
 export function startOfDaySP(dateStr: string): Date {
-	// Determine SP offset for noon on that date (avoids DST edge at midnight)
-	const noonUTC = new Date(`${dateStr}T12:00:00Z`)
-	const offsetMin = getSPOffsetMinutes(noonUTC)
-
 	const [year, month, day] = dateStr.split("-").map(Number)
-	// midnight SP = midnight UTC minus offset
-	return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0) - offsetMin * 60000)
+	
+	const rawMidnightUTC = Date.UTC(year, month - 1, day, 0, 0, 0, 0)
+	// Guess offset using 03:00 UTC (safe fallback since SP is UTC-3 or UTC-2)
+	const guessUTC = new Date(rawMidnightUTC + 3 * 3600000)
+	const offsetMin = getSPOffsetMinutes(guessUTC)
+	
+	let startUTC = new Date(rawMidnightUTC - offsetMin * 60000)
+	
+	// If midnight was skipped (e.g. spring forward 00:00 -> 01:00), format will shift to prev day.
+	// We correct it by incrementing/decrementing hour until it matches requested local day.
+	const startStr = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(startUTC)
+	if (startStr < dateStr) {
+		startUTC = new Date(startUTC.getTime() + 60 * 60000)
+	} else if (startStr > dateStr) {
+		startUTC = new Date(startUTC.getTime() - 60 * 60000)
+	}
+	
+	return startUTC
 }
 
 /**
  * Get end of day in São Paulo as UTC Date.
+ * Accurately handles historical DST days that are 23 or 25 hours long.
  */
 export function endOfDaySP(dateStr: string): Date {
-	const start = startOfDaySP(dateStr)
-	return new Date(start.getTime() + 24 * 60 * 60 * 1000)
+	const [year, month, day] = dateStr.split("-").map(Number)
+	// End of day is precisely the start of the next day
+	const nextDayUTC = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0))
+	const nextDayStr = nextDayUTC.toISOString().split("T")[0]
+	return startOfDaySP(nextDayStr)
 }
 
 /**
@@ -91,17 +108,23 @@ function todaySP(): string {
  * Filters out booked slots and past slots (if date is today).
  */
 export function generateAvailableSlots(dateStr: string, bookedStartTimes: Date[]): Slot[] {
-	const dayStart = startOfDaySP(dateStr)
 	const now = new Date()
 	const isToday = dateStr === todaySP()
 
 	const bookedSet = new Set(bookedStartTimes.map((d) => d.getTime()))
 
 	const slots: Slot[] = []
+	const [year, month, day] = dateStr.split("-").map(Number)
+
+	// Business hours fall safely in the middle of the day, so noon offset applies perfectly
+	const noonUTC = new Date(Date.UTC(year, month - 1, day, 15, 0, 0))
+	const offsetMin = getSPOffsetMinutes(noonUTC)
 
 	for (let hour = BUSINESS_START; hour < BUSINESS_END; hour++) {
 		for (const minute of [0, 30]) {
-			const startMs = dayStart.getTime() + (hour * 60 + minute) * 60000
+			// Calculate exact UTC start time for this slot, using the day's constant business hours offset
+			const localTimeAsUtc = Date.UTC(year, month - 1, day, hour, minute, 0)
+			const startMs = localTimeAsUtc - offsetMin * 60000
 			const endMs = startMs + SLOT_MINUTES * 60000
 
 			// Skip past slots if today

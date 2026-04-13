@@ -1,6 +1,9 @@
 import "dotenv/config"
 import cors from "cors"
 import express from "express"
+import fs from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { z } from "zod"
 import { adminRouter } from "./routes/admin.js"
 import { appointmentsRouter } from "./routes/appointments.js"
@@ -34,6 +37,10 @@ const port = env.PORT
 const isDev = env.NODE_ENV !== "production"
 const corsOrigin = env.CORS_ORIGIN
 const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
+const currentFilePath = fileURLToPath(import.meta.url)
+const currentDirPath = path.dirname(currentFilePath)
+const frontendDistDir = path.resolve(currentDirPath, "../../frontend/dist")
+const hasFrontendBuild = fs.existsSync(frontendDistDir)
 
 app.use(
 	cors({
@@ -60,6 +67,14 @@ app.use("/api/specialties", specialtiesRouter)
 app.use("/api/barbers", barbersRouter)
 app.use("/api/appointments", appointmentsRouter)
 app.use("/api/admin", adminRouter)
+
+if (hasFrontendBuild) {
+	app.use(express.static(frontendDistDir))
+
+	app.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => {
+		res.sendFile(path.join(frontendDistDir, "index.html"))
+	})
+}
 
 // --- Error handler (must be last) ---
 app.use(errorHandler)
