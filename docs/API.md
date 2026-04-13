@@ -363,7 +363,7 @@ Erros:
 
 ### `GET /api/barbers/:barberId/availability?date=2026-04-08&specialtyId=1`
 
-Lista slots disponiveis do barbeiro em uma data. O parametro `specialtyId` e obrigatorio e o sistema valida que o barbeiro atende essa especialidade. A data deve estar entre hoje e 90 dias a frente.
+Lista slots disponiveis do barbeiro em uma data. Requer autenticacao (JWT). O parametro `specialtyId` e obrigatorio e o sistema valida que o barbeiro atende essa especialidade. A data deve estar entre hoje e 90 dias a frente.
 
 Response `200`:
 
@@ -387,7 +387,8 @@ Response `200`:
 
 Erros:
 
-- `404` se o barbeiro nao existir.
+- `404` se o barbeiro nao existir ou estiver inativo.
+- `401` se nao autenticado.
 - `422` se a data for invalida, estiver fora da janela de 90 dias ou se o `specialtyId` estiver ausente.
 - `422` se o barbeiro nao atender a especialidade informada.
 
@@ -487,7 +488,7 @@ Response `200`:
 Erros:
 
 - `403` se o agendamento nao pertencer ao usuario autenticado.
-- `409` se faltarem menos de 2 horas para o inicio.
+- `409` se faltarem menos de 2 horas para o inicio ou se o agendamento ja estiver cancelado.
 - `404` se o agendamento nao existir.
 
 ## Visao administrativa

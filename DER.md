@@ -78,3 +78,7 @@ erDiagram
 | INDEX | `idx_appointments_customer_start_at` | `(customer_id, start_at DESC)` — consulta de agendamentos do cliente. |
 | INDEX | `idx_appointments_start_at_status` | `(start_at, status)` — consulta administrativa por dia/futuros. |
 | INDEX | `idx_barbers_active` / `idx_specialties_active` | Filtro rapido por registros ativos. |
+
+## Triggers
+
+Funcao `set_updated_at()` atualiza automaticamente `updated_at` com `NOW()` a cada UPDATE nas tabelas `users`, `barbers`, `specialties` e `appointments`.
