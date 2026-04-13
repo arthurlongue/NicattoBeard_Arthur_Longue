@@ -23,6 +23,14 @@ Documentacao: [`docs/PRD.md`](docs/PRD.md) (requisitos do produto), [`docs/API.m
 
 ### Quick Start (Docker)
 
+Opcional: copie o exemplo da raiz se quiser sobrescrever portas, credenciais do Postgres ou `JWT_SECRET` do ambiente Docker local.
+
+```bash
+cp .env.example .env
+```
+
+Se nao copiar, os defaults do `docker-compose.yml` ja sobem o ambiente.
+
 ```bash
 pnpm docker:dev
 ```
@@ -52,6 +60,13 @@ pnpm docker:down    # Stop all services
 pnpm docker:reset   # Stop + reset DB volume
 docker compose logs -f
 ```
+
+#### Papel dos arquivos Docker
+
+- `docker-compose.yml`: stack local completa.
+- `backend/Dockerfile`: container de desenvolvimento do backend usado pelo compose.
+- `frontend/Dockerfile.dev`: container de desenvolvimento do frontend usado pelo compose.
+- `Dockerfile`: imagem full-stack para deploy, servindo API + frontend no mesmo processo HTTP.
 
 ### Desenvolvimento manual (sem Docker)
 
