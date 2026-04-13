@@ -3,7 +3,7 @@ import { z } from "zod"
 import { authenticate } from "../lib/auth.js"
 import { query } from "../lib/db.js"
 import { ApiError } from "../lib/errors.js"
-import { toSaoPauloISO } from "../lib/slots.js"
+import { toSaoPauloISO, isBusinessHour, isValidSlotMinute } from "../lib/slots.js"
 import { validate } from "../lib/validate.js"
 
 // --- Schemas ---
@@ -31,19 +31,6 @@ const paramsSchema = z.object({
 // --- Helpers ---
 
 const TZ = "America/Sao_Paulo"
-
-function getLocalHourMinute(date: Date): { hour: number; minute: number } {
-	const parts = new Intl.DateTimeFormat("en-US", {
-		timeZone: TZ,
-		hour: "numeric",
-		minute: "numeric",
-		hour12: false,
-	}).formatToParts(date)
-
-	const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0)
-	const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0)
-	return { hour, minute }
-}
 
 // --- Router ---
 
@@ -73,15 +60,13 @@ appointmentsRouter.post(
 			}
 
 			// Validate business hours (08:00–17:30 in SP)
-			const { hour, minute } = getLocalHourMinute(startAt)
-
-			if (hour < 8 || hour >= 18 || (hour === 17 && minute > 30)) {
+			if (!isBusinessHour(startAt)) {
 				next(ApiError.validation("Horário fora da faixa operacional 08:00–18:00"))
 				return
 			}
 
 			// Validate 30-min slot boundaries
-			if (minute !== 0 && minute !== 30) {
+			if (!isValidSlotMinute(startAt)) {
 				next(ApiError.validation("Horário deve iniciar em intervalos de 30 minutos"))
 				return
 			}
