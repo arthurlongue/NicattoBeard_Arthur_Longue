@@ -122,3 +122,35 @@ export function generateAvailableSlots(dateStr: string, bookedStartTimes: Date[]
 
 	return slots
 }
+
+/**
+ * Check if a given Date (considering its SP local time equivalent) is within business hours (08:00 - 17:30).
+ */
+export function isBusinessHour(date: Date): boolean {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: TZ,
+		hour: "numeric",
+		minute: "numeric",
+		hour12: false,
+	}).formatToParts(date)
+
+	const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0)
+	const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0)
+
+	if (hour < BUSINESS_START || hour >= BUSINESS_END) return false
+	if (hour === BUSINESS_END - 1 && minute > 30) return false
+	return true
+}
+
+/**
+ * Check if a given Date's minute is aligned to 30-min slots.
+ */
+export function isValidSlotMinute(date: Date): boolean {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: TZ,
+		minute: "numeric",
+	}).formatToParts(date)
+
+	const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0)
+	return minute === 0 || minute === 30
+}
