@@ -1,14 +1,7 @@
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -17,39 +10,46 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import type { Specialty } from "@/lib/types";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
+import type { Specialty } from "@/lib/types"
 
 const MOCK_SPECIALTIES: Specialty[] = [
 	{ id: "1", name: "Corte Social", active: true },
 	{ id: "2", name: "Barba Terapia", active: true },
 	{ id: "3", name: "Degradê", active: true },
 	{ id: "4", name: "Coloração", active: true },
-];
+]
 
 export function AdminSpecialties() {
-	const [specialties, setSpecialties] = useState<Specialty[]>(MOCK_SPECIALTIES);
-	const [isAddOpen, setIsAddOpen] = useState(false);
-	const [newName, setNewName] = useState("");
+	const [specialties, setSpecialties] = useState<Specialty[]>(MOCK_SPECIALTIES)
+	const [isAddOpen, setIsAddOpen] = useState(false)
+	const [newName, setNewName] = useState("")
 
 	const handleAdd = () => {
-		if (!newName.trim()) return;
+		if (!newName.trim()) return
 		const newSpec: Specialty = {
 			id: Math.random().toString(36).substr(2, 9),
 			name: newName,
 			active: true,
-		};
-		setSpecialties([...specialties, newSpec]);
-		setNewName("");
-		setIsAddOpen(false);
-	};
+		}
+		setSpecialties([...specialties, newSpec])
+		setNewName("")
+		setIsAddOpen(false)
+	}
 
 	const handleDelete = (id: string) => {
-		setSpecialties(specialties.filter((s) => s.id !== id));
-	};
+		setSpecialties(specialties.filter((s) => s.id !== id))
+	}
 
 	return (
 		<div className="space-y-6">
@@ -112,9 +112,7 @@ export function AdminSpecialties() {
 						) : (
 							specialties.map((specialty) => (
 								<TableRow key={specialty.id}>
-									<TableCell className="font-medium">
-										{specialty.name}
-									</TableCell>
+									<TableCell className="font-medium">{specialty.name}</TableCell>
 									<TableCell>
 										<Badge variant={specialty.active ? "default" : "secondary"}>
 											{specialty.active ? "Ativo" : "Inativo"}
@@ -125,7 +123,7 @@ export function AdminSpecialties() {
 											variant="ghost"
 											size="icon"
 											onClick={() => handleDelete(specialty.id)}
-											className="text-destructive hover:text-destructive hover:bg-destructive/10"
+											className="text-destructive hover:bg-destructive/10 hover:text-destructive"
 										>
 											<Trash2 className="h-4 w-4" />
 										</Button>
@@ -137,5 +135,5 @@ export function AdminSpecialties() {
 				</Table>
 			</div>
 		</div>
-	);
+	)
 }

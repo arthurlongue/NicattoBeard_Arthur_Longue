@@ -1,14 +1,8 @@
-import { useState } from "react";
-import { Trash2, UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { Trash2, UserPlus } from "lucide-react"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
 	Dialog,
 	DialogContent,
@@ -17,18 +11,24 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Barber, Specialty } from "@/lib/types";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
+import type { Barber, Specialty } from "@/lib/types"
 
 const MOCK_SPECIALTIES: Specialty[] = [
 	{ id: "1", name: "Corte Social", active: true },
 	{ id: "2", name: "Barba Terapia", active: true },
 	{ id: "3", name: "Degradê", active: true },
-];
+]
 
 const MOCK_BARBERS: Barber[] = [
 	{
@@ -47,20 +47,20 @@ const MOCK_BARBERS: Barber[] = [
 		active: true,
 		specialties: [MOCK_SPECIALTIES[1]],
 	},
-];
+]
 
 export function AdminBarbers() {
-	const [barbers, setBarbers] = useState<Barber[]>(MOCK_BARBERS);
-	const [isAddOpen, setIsAddOpen] = useState(false);
+	const [barbers, setBarbers] = useState<Barber[]>(MOCK_BARBERS)
+	const [isAddOpen, setIsAddOpen] = useState(false)
 	const [formData, setFormData] = useState({
 		name: "",
 		age: "",
 		hireDate: new Date().toISOString().split("T")[0],
 		selectedSpecialties: [] as string[],
-	});
+	})
 
 	const handleAdd = () => {
-		if (!formData.name || !formData.age) return;
+		if (!formData.name || !formData.age) return
 
 		const newBarber: Barber = {
 			id: Math.random().toString(36).substr(2, 9),
@@ -68,24 +68,22 @@ export function AdminBarbers() {
 			age: Number(formData.age),
 			hireDate: formData.hireDate,
 			active: true,
-			specialties: MOCK_SPECIALTIES.filter((s) =>
-				formData.selectedSpecialties.includes(s.id),
-			),
-		};
+			specialties: MOCK_SPECIALTIES.filter((s) => formData.selectedSpecialties.includes(s.id)),
+		}
 
-		setBarbers([...barbers, newBarber]);
+		setBarbers([...barbers, newBarber])
 		setFormData({
 			name: "",
 			age: "",
 			hireDate: new Date().toISOString().split("T")[0],
 			selectedSpecialties: [],
-		});
-		setIsAddOpen(false);
-	};
+		})
+		setIsAddOpen(false)
+	}
 
 	const handleDelete = (id: string) => {
-		setBarbers(barbers.filter((h) => h.id !== id));
-	};
+		setBarbers(barbers.filter((h) => h.id !== id))
+	}
 
 	const toggleSpecialty = (id: string) => {
 		setFormData((prev) => ({
@@ -93,8 +91,8 @@ export function AdminBarbers() {
 			selectedSpecialties: prev.selectedSpecialties.includes(id)
 				? prev.selectedSpecialties.filter((s) => s !== id)
 				: [...prev.selectedSpecialties, id],
-		}));
-	};
+		}))
+	}
 
 	return (
 		<div className="space-y-6">
@@ -123,9 +121,7 @@ export function AdminBarbers() {
 								<Input
 									id="name"
 									value={formData.name}
-									onChange={(e) =>
-										setFormData({ ...formData, name: e.target.value })
-									}
+									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
 									placeholder="Ex: João Silva"
 								/>
 							</div>
@@ -136,9 +132,7 @@ export function AdminBarbers() {
 										id="age"
 										type="number"
 										value={formData.age}
-										onChange={(e) =>
-											setFormData({ ...formData, age: e.target.value })
-										}
+										onChange={(e) => setFormData({ ...formData, age: e.target.value })}
 										placeholder="25"
 									/>
 								</div>
@@ -148,30 +142,23 @@ export function AdminBarbers() {
 										id="hireDate"
 										type="date"
 										value={formData.hireDate}
-										onChange={(e) =>
-											setFormData({ ...formData, hireDate: e.target.value })
-										}
+										onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
 									/>
 								</div>
 							</div>
 							<div className="grid gap-2">
 								<Label>Especialidades</Label>
-								<div className="grid grid-cols-2 gap-2 mt-2">
+								<div className="mt-2 grid grid-cols-2 gap-2">
 									{MOCK_SPECIALTIES.map((specialty) => (
-										<div
-											key={specialty.id}
-											className="flex items-center space-x-2"
-										>
+										<div key={specialty.id} className="flex items-center space-x-2">
 											<Checkbox
 												id={`spec-${specialty.id}`}
-												checked={formData.selectedSpecialties.includes(
-													specialty.id,
-												)}
+												checked={formData.selectedSpecialties.includes(specialty.id)}
 												onCheckedChange={() => toggleSpecialty(specialty.id)}
 											/>
 											<label
 												htmlFor={`spec-${specialty.id}`}
-												className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+												className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 											>
 												{specialty.name}
 											</label>
@@ -222,15 +209,13 @@ export function AdminBarbers() {
 											))}
 										</div>
 									</TableCell>
-									<TableCell>
-										{new Date(barber.hireDate).toLocaleDateString("pt-BR")}
-									</TableCell>
+									<TableCell>{new Date(barber.hireDate).toLocaleDateString("pt-BR")}</TableCell>
 									<TableCell className="text-right">
 										<Button
 											variant="ghost"
 											size="icon"
 											onClick={() => handleDelete(barber.id)}
-											className="text-destructive hover:text-destructive hover:bg-destructive/10"
+											className="text-destructive hover:bg-destructive/10 hover:text-destructive"
 										>
 											<Trash2 className="h-4 w-4" />
 										</Button>
@@ -242,5 +227,5 @@ export function AdminBarbers() {
 				</Table>
 			</div>
 		</div>
-	);
+	)
 }

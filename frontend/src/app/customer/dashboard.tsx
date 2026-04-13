@@ -1,16 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Calendar, Clock, Plus, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, Plus, XCircle } from "lucide-react"
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { toast } from "sonner"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -21,9 +12,18 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import type { Appointment } from "@/lib/types";
+} from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table"
+import type { Appointment } from "@/lib/types"
 
 const MOCK_USER_APPOINTMENTS: Appointment[] = [
 	{
@@ -48,44 +48,38 @@ const MOCK_USER_APPOINTMENTS: Appointment[] = [
 		date: new Date(Date.now() - 86400000).toISOString(), // Ontem
 		status: "completed",
 	},
-];
+]
 
 export function CustomerDashboard() {
-	const [appointments, setAppointments] = useState<Appointment[]>(
-		MOCK_USER_APPOINTMENTS,
-	);
+	const [appointments, setAppointments] = useState<Appointment[]>(MOCK_USER_APPOINTMENTS)
 
 	const handleCancel = (id: string) => {
-		const app = appointments.find((a) => a.id === id);
-		if (!app) return;
+		const app = appointments.find((a) => a.id === id)
+		if (!app) return
 
-		const appDate = new Date(app.date);
-		const now = new Date();
-		const diffInHours = (appDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+		const appDate = new Date(app.date)
+		const now = new Date()
+		const diffInHours = (appDate.getTime() - now.getTime()) / (1000 * 60 * 60)
 
 		if (diffInHours < 2) {
 			toast.error(
 				"Cancelamento bloqueado: Horário deve ser cancelado com no mínimo 2 horas de antecedência.",
-			);
-			return;
+			)
+			return
 		}
 
-		setAppointments(
-			appointments.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a)),
-		);
-		toast.success("Agendamento cancelado com sucesso.");
-	};
+		setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a)))
+		toast.success("Agendamento cancelado com sucesso.")
+	}
 
-	const upcoming = appointments.filter((a) => new Date(a.date) > new Date());
-	const past = appointments.filter((a) => new Date(a.date) <= new Date());
+	const upcoming = appointments.filter((a) => new Date(a.date) > new Date())
+	const past = appointments.filter((a) => new Date(a.date) <= new Date())
 
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="font-bold text-2xl tracking-tight">
-						Meus Agendamentos
-					</h1>
+					<h1 className="font-bold text-2xl tracking-tight">Meus Agendamentos</h1>
 					<p className="mt-2 text-muted-foreground">
 						Gerencie seus horários marcados na NicattoBeard.
 					</p>
@@ -97,7 +91,7 @@ export function CustomerDashboard() {
 			</div>
 
 			<div className="space-y-4">
-				<h2 className="text-lg font-semibold flex items-center gap-2">
+				<h2 className="flex items-center gap-2 font-semibold text-lg">
 					<Clock className="h-5 w-5 text-primary" />
 					Próximos Atendimentos
 				</h2>
@@ -132,34 +126,31 @@ export function CustomerDashboard() {
 										<TableCell>{app.specialtyName}</TableCell>
 										<TableCell>{app.barberName}</TableCell>
 										<TableCell>
-											<Badge
-												variant={
-													app.status === "scheduled" ? "default" : "destructive"
-												}
-											>
+											<Badge variant={app.status === "scheduled" ? "default" : "destructive"}>
 												{app.status === "scheduled" ? "Agendado" : "Cancelado"}
 											</Badge>
 										</TableCell>
 										<TableCell className="text-right">
 											{app.status === "scheduled" && (
 												<AlertDialog>
-													<AlertDialogTrigger render={<Button
-															variant="ghost"
-															size="sm"
-															className="text-destructive hover:text-destructive hover:bg-destructive/10"
-														/>}
+													<AlertDialogTrigger
+														render={
+															<Button
+																variant="ghost"
+																size="sm"
+																className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+															/>
+														}
 													>
 														<XCircle className="mr-2 h-4 w-4" />
 														Cancelar
 													</AlertDialogTrigger>
 													<AlertDialogContent>
 														<AlertDialogHeader>
-															<AlertDialogTitle>
-																Confirmar cancelamento?
-															</AlertDialogTitle>
+															<AlertDialogTitle>Confirmar cancelamento?</AlertDialogTitle>
 															<AlertDialogDescription>
-																Esta ação não pode ser desfeita. O horário
-																ficará disponível para outros clientes.
+																Esta ação não pode ser desfeita. O horário ficará disponível para
+																outros clientes.
 															</AlertDialogDescription>
 														</AlertDialogHeader>
 														<AlertDialogFooter>
@@ -184,7 +175,7 @@ export function CustomerDashboard() {
 			</div>
 
 			<div className="space-y-4">
-				<h2 className="text-lg font-semibold flex items-center gap-2">
+				<h2 className="flex items-center gap-2 font-semibold text-lg">
 					<Calendar className="h-5 w-5 text-muted-foreground" />
 					Histórico
 				</h2>
@@ -208,9 +199,7 @@ export function CustomerDashboard() {
 							) : (
 								past.map((app) => (
 									<TableRow key={app.id}>
-										<TableCell>
-											{new Date(app.date).toLocaleDateString("pt-BR")}
-										</TableCell>
+										<TableCell>{new Date(app.date).toLocaleDateString("pt-BR")}</TableCell>
 										<TableCell>{app.specialtyName}</TableCell>
 										<TableCell>{app.barberName}</TableCell>
 										<TableCell>
@@ -230,5 +219,5 @@ export function CustomerDashboard() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }
