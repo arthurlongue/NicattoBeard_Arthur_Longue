@@ -103,9 +103,9 @@ async function fetchBarberWithSpecialties(barberId: number) {
 export const barbersRouter = Router()
 
 // GET /api/barbers (público)
-barbersRouter.get("/", validate(listQuerySchema, "query"), async (req, res, next) => {
+barbersRouter.get("/", validate(listQuerySchema, "query"), async (_req, res, next) => {
 	try {
-		const { specialtyId } = req.query as { specialtyId?: number }
+		const { specialtyId } = res.locals.query as { specialtyId?: number }
 
 		let sql = `
 			SELECT b.id, b.name, b.age, b.hire_date, s.id AS specialty_id, s.name AS specialty_name
@@ -202,7 +202,7 @@ barbersRouter.patch(
 	validate(updateSchema, "body"),
 	async (req, res, next) => {
 		try {
-			const { barberId } = req.params as unknown as { barberId: number }
+			const { barberId } = res.locals.params as { barberId: number }
 			const body = req.body as { name?: string; age?: number; active?: boolean }
 
 			const existing = await query("SELECT id FROM barbers WHERE id = $1", [barberId])
@@ -249,7 +249,7 @@ barbersRouter.put(
 	async (req, res, next) => {
 		const client = await pool.connect()
 		try {
-			const { barberId } = req.params as unknown as { barberId: number }
+			const { barberId } = res.locals.params as { barberId: number }
 			const { specialtyIds } = req.body as { specialtyIds: number[] }
 
 			const existing = await client.query("SELECT id FROM barbers WHERE id = $1", [barberId])
@@ -306,8 +306,8 @@ barbersRouter.get(
 	validate(availabilityQuerySchema, "query"),
 	async (req, res, next) => {
 		try {
-			const { barberId } = req.params as unknown as { barberId: number }
-			const { date, specialtyId } = req.query as unknown as {
+			const { barberId } = res.locals.params as { barberId: number }
+			const { date, specialtyId } = res.locals.query as {
 				date: string
 				specialtyId: number
 			}

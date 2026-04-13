@@ -178,7 +178,7 @@ appointmentsRouter.patch(
 	validate(cancelSchema, "body"),
 	async (req, res, next) => {
 		try {
-			const { appointmentId } = req.params as unknown as { appointmentId: number }
+			const { appointmentId } = res.locals.params as { appointmentId: number }
 			const { reason } = req.body as { reason?: string }
 			const customerId = req.user!.id
 

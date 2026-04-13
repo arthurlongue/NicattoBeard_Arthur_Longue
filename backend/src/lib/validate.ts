@@ -6,7 +6,7 @@ export function validate(
 	schema: z.ZodType,
 	source: "body" | "params" | "query",
 ): RequestHandler {
-	return (req, _res, next) => {
+	return (req, res, next) => {
 		const result = schema.safeParse(req[source])
 
 		if (!result.success) {
@@ -22,7 +22,16 @@ export function validate(
 			return
 		}
 
-		req[source] = result.data
+		// Express 5 makes req.query and req.params read-only getters.
+		// Store parsed data in res.locals so handlers can access typed values.
+		if (source === "query") {
+			res.locals.query = result.data
+		} else if (source === "params") {
+			res.locals.params = result.data
+		} else {
+			req.body = result.data
+		}
+
 		next()
 	}
 }

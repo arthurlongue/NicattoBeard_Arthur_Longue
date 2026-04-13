@@ -25,7 +25,7 @@ adminRouter.get(
 	validate(querySchema, "query"),
 	async (req, res, next) => {
 		try {
-			const { scope } = req.query as { scope: "today" | "future" }
+			const { scope } = res.locals.query as { scope: "today" | "future" }
 
 			let whereClause: string
 			let params: unknown[]

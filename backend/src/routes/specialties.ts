@@ -79,7 +79,7 @@ specialtiesRouter.patch(
 	validate(updateSchema, "body"),
 	async (req, res, next) => {
 		try {
-			const { specialtyId } = req.params as unknown as { specialtyId: number }
+			const { specialtyId } = res.locals.params as { specialtyId: number }
 			const body = req.body as { name?: string; description?: string; active?: boolean }
 
 			// Check exists
