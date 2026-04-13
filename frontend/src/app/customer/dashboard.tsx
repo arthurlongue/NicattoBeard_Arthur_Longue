@@ -58,7 +58,7 @@ export function CustomerDashboard() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="font-bold text-2xl tracking-tight">Meus Agendamentos</h1>
 					<p className="mt-2 text-muted-foreground">
@@ -76,7 +76,7 @@ export function CustomerDashboard() {
 					<Clock className="h-5 w-5 text-primary" />
 					Próximos Atendimentos
 				</h2>
-				<div className="rounded-md border bg-background">
+				<div className="overflow-x-auto rounded-md border bg-background">
 					<Table>
 						<TableHeader>
 							<TableRow>
@@ -156,7 +156,7 @@ export function CustomerDashboard() {
 					<Calendar className="h-5 w-5 text-muted-foreground" />
 					Histórico
 				</h2>
-				<div className="rounded-md border bg-background opacity-70">
+				<div className="overflow-x-auto rounded-md border bg-background opacity-70">
 					<Table>
 						<TableHeader>
 							<TableRow>

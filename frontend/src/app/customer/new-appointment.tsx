@@ -183,7 +183,7 @@ export function NewAppointment() {
 			)}
 
 			{step === 3 && (
-				<div className="grid gap-8 md:grid-cols-2">
+				<div className="grid gap-8 pb-28 md:grid-cols-2 md:pb-0">
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export function NewAppointment() {
 								onSelect={(d) =>
 									setSelection({ ...selection, date: d, startAt: "", timeLabel: "" })
 								}
-								className="rounded-md border"
+								className="w-full rounded-md border"
 								locale={ptBR}
 								disabled={(date) => date < new Date() || date.getDay() === 0}
 							/>
@@ -241,7 +241,7 @@ export function NewAppointment() {
 											<Button
 												key={slot.startAt}
 												variant={selection.startAt === slot.startAt ? "default" : "outline"}
-												className="text-xs"
+												className="h-11 text-sm"
 												onClick={() =>
 													setSelection({
 														...selection,

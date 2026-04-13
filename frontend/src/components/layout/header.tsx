@@ -20,10 +20,12 @@ export function Header() {
 			<nav className="ml-auto flex items-center gap-4 sm:gap-6">
 				{isAuthenticated ? (
 					<>
-						<span className="text-muted-foreground text-sm">{user?.name}</span>
+						<span className="text-muted-foreground text-sm truncate max-w-[100px] sm:max-w-none">
+							{user?.name}
+						</span>
 						<button
 							onClick={handleLogout}
-							className="flex items-center gap-1 font-medium text-sm hover:text-destructive"
+							className="inline-flex items-center justify-center gap-1 rounded-md px-3 py-2 font-medium text-sm min-h-[44px] min-w-[44px] hover:text-destructive"
 						>
 							<LogOut className="h-4 w-4" />
 							Sair
@@ -31,10 +33,16 @@ export function Header() {
 					</>
 				) : (
 					<>
-						<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/login">
+						<Link
+							className="inline-flex items-center justify-center rounded-md px-3 py-2 font-medium text-sm underline-offset-4 min-h-[44px] hover:underline"
+							to="/login"
+						>
 							Entrar
 						</Link>
-						<Link className="font-medium text-sm underline-offset-4 hover:underline" to="/signup">
+						<Link
+							className="inline-flex items-center justify-center rounded-md px-3 py-2 font-medium text-sm underline-offset-4 min-h-[44px] hover:underline"
+							to="/signup"
+						>
 							Criar conta
 						</Link>
 					</>
