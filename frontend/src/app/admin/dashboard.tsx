@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Calendar, CheckCircle2, Clock, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, CheckCircle2, Clock, Users } from "lucide-react"
+import { useState } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
 	Table,
 	TableBody,
@@ -8,10 +10,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { Appointment } from "@/lib/types";
+} from "@/components/ui/table"
+import type { Appointment } from "@/lib/types"
 
 const MOCK_APPOINTMENTS: Appointment[] = [
 	{
@@ -47,25 +47,24 @@ const MOCK_APPOINTMENTS: Appointment[] = [
 		date: new Date(Date.now() + 86400000).toISOString(), // Amanhã
 		status: "scheduled",
 	},
-];
+]
 
 export function AdminDashboard() {
-	const [view, setView] = useState<"today" | "future">("today");
+	const [view, setView] = useState<"today" | "future">("today")
 
-	const today = new Date().toISOString().split("T")[0];
+	const today = new Date().toISOString().split("T")[0]
 	const filteredAppointments = MOCK_APPOINTMENTS.filter((app) => {
-		const appDate = app.date.split("T")[0];
-		return view === "today" ? appDate === today : appDate > today;
-	});
+		const appDate = app.date.split("T")[0]
+		return view === "today" ? appDate === today : appDate > today
+	})
 
 	const stats = {
-		totalToday: MOCK_APPOINTMENTS.filter((a) => a.date.split("T")[0] === today)
-			.length,
+		totalToday: MOCK_APPOINTMENTS.filter((a) => a.date.split("T")[0] === today).length,
 		completedToday: MOCK_APPOINTMENTS.filter(
 			(a) => a.date.split("T")[0] === today && a.status === "completed",
 		).length,
 		future: MOCK_APPOINTMENTS.filter((a) => a.date.split("T")[0] > today).length,
-	};
+	}
 
 	return (
 		<div className="space-y-6">
@@ -79,34 +78,32 @@ export function AdminDashboard() {
 			<div className="grid gap-4 md:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total de Hoje</CardTitle>
+						<CardTitle className="font-medium text-sm">Total de Hoje</CardTitle>
 						<Users className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats.totalToday}</div>
-						<p className="text-xs text-muted-foreground">atendimentos</p>
+						<div className="font-bold text-2xl">{stats.totalToday}</div>
+						<p className="text-muted-foreground text-xs">atendimentos</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Concluídos</CardTitle>
+						<CardTitle className="font-medium text-sm">Concluídos</CardTitle>
 						<CheckCircle2 className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-green-600">
-							{stats.completedToday}
-						</div>
-						<p className="text-xs text-muted-foreground">atendimentos</p>
+						<div className="font-bold text-2xl text-green-600">{stats.completedToday}</div>
+						<p className="text-muted-foreground text-xs">atendimentos</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Pendentes/Futuros</CardTitle>
+						<CardTitle className="font-medium text-sm">Pendentes/Futuros</CardTitle>
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats.future}</div>
-						<p className="text-xs text-muted-foreground">agendamentos salvos</p>
+						<div className="font-bold text-2xl">{stats.future}</div>
+						<p className="text-muted-foreground text-xs">agendamentos salvos</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -115,14 +112,14 @@ export function AdminDashboard() {
 				<div className="flex border-b">
 					<Button
 						variant={view === "today" ? "default" : "ghost"}
-						className={`rounded-none border-b-2 h-10 px-4 ${view === "today" ? "border-primary" : "border-transparent"}`}
+						className={`h-10 rounded-none border-b-2 px-4 ${view === "today" ? "border-primary" : "border-transparent"}`}
 						onClick={() => setView("today")}
 					>
 						Hoje
 					</Button>
 					<Button
 						variant={view === "future" ? "default" : "ghost"}
-						className={`rounded-none border-b-2 h-10 px-4 ${view === "future" ? "border-primary" : "border-transparent"}`}
+						className={`h-10 rounded-none border-b-2 px-4 ${view === "future" ? "border-primary" : "border-transparent"}`}
 						onClick={() => setView("future")}
 					>
 						Próximos Dias
@@ -158,15 +155,13 @@ export function AdminDashboard() {
 													minute: "2-digit",
 												})}
 												{view === "future" && (
-													<span className="text-xs text-muted-foreground ml-1">
+													<span className="ml-1 text-muted-foreground text-xs">
 														({new Date(app.date).toLocaleDateString("pt-BR")})
 													</span>
 												)}
 											</div>
 										</TableCell>
-										<TableCell className="font-medium">
-											{app.customerName}
-										</TableCell>
+										<TableCell className="font-medium">{app.customerName}</TableCell>
 										<TableCell>{app.barberName}</TableCell>
 										<TableCell>{app.specialtyName}</TableCell>
 										<TableCell>
@@ -194,5 +189,5 @@ export function AdminDashboard() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }
