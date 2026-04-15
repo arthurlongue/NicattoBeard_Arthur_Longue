@@ -101,7 +101,7 @@ erDiagram
     USERS ||--o{ APPOINTMENTS : books
     BARBERS ||--o{ BARBER_SPECIALTIES : has
     SPECIALTIES ||--o{ BARBER_SPECIALTIES : qualifies
-    BARBER_SPECIALTIES --o{ APPOINTMENTS : validates
+    BARBER_SPECIALTIES ||--o{ APPOINTMENTS : validates
 ```
 
 - `users -> appointments`: a customer can create many appointments.
