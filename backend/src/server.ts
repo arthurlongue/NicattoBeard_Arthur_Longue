@@ -33,6 +33,7 @@ if (!envResult.success) {
 }
 
 const app = express()
+app.disable("x-powered-by")
 const env = envResult.data
 const port = env.PORT
 const isDev = env.NODE_ENV !== "production"
